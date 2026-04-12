@@ -2,6 +2,17 @@
 
 A desktop application that detects unauthorized access by analyzing real-time behavioral biometrics: mouse movement patterns, keystroke timing, click frequency, and scroll pacing.
 
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Settings
+![Settings](screenshots/settings.png)
+
+### Demo
+![Demo](screenshots/demo.png)
+
 ## How It Works
 
 1. **Browser Capture:** A lightweight JavaScript tracker records mouse velocity, keystroke hold/interval times, click patterns, and scroll behavior (no keystrokes or personal data are captured).
