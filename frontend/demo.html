@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HumanSeeker: Demo</title>
+  <style>
+    :root { --accent: #58a6ff; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1117;
+      color: #c9d1d9;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    h1 { font-size: 1.5rem; color: var(--accent, #58a6ff); margin-bottom: 0.25rem; }
+    .subtitle { color: #8b949e; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+    /* --- Status bar --- */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #3fb950;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .status-bar code {
+      background: #21262d; padding: 2px 6px; border-radius: 3px;
+      font-size: 0.8rem; color: #79c0ff;
+    }
+
+    .baseline-progress {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .progress-pips { display: flex; gap: 4px; }
+
+    .pip {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #21262d; border: 1px solid #30363d;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .pip.filled { background: #3fb950; border-color: #238636; }
+
+    /* --- Interaction zone --- */
+    .interaction-zone {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .interaction-zone h2 {
+      font-size: 0.95rem; color: #8b949e; margin-bottom: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    /* (nav styles removed: no longer needed) */
+
+    textarea {
+      width: 100%; height: 90px; background: #0d1117;
+      border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9;
+      padding: 0.6rem; font-family: inherit; font-size: 0.9rem; resize: vertical;
+      margin-bottom: 0.75rem;
+    }
+    textarea:focus { outline: none; border-color: var(--accent, #58a6ff); }
+
+    .scroll-box {
+      max-height: 160px; overflow-y: auto; font-size: 0.85rem;
+      color: #8b949e; padding: 0.5rem; background: #0d1117;
+      border-radius: 6px; border: 1px solid #30363d;
+    }
+    .scroll-box p { margin-bottom: 0.6rem; }
+
+    /* --- Action buttons --- */
+    .actions {
+      display: flex; gap: 1rem; align-items: stretch;
+      margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+
+    .action-card {
+      flex: 1; min-width: 280px; background: #161b22;
+      border: 1px solid #30363d; border-radius: 8px;
+      padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;
+    }
+
+    .action-card h3 { font-size: 1rem; }
+    .action-card p { font-size: 0.82rem; color: #8b949e; flex: 1; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.4rem; border: none; padding: 0.65rem 1.25rem; border-radius: 6px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: background 0.15s, transform 0.1s; color: #fff;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    .btn-calibrate { background: #1f6feb; }
+    .btn-calibrate:hover:not(:disabled) { background: #388bfd; }
+
+    .btn-anomaly { background: #da3633; }
+    .btn-anomaly:hover:not(:disabled) { background: #f85149; }
+
+    .btn-icon { font-size: 1.1rem; }
+
+    /* --- Result display --- */
+    .result-panel {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .result-header {
+      padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid #30363d; color: #8b949e;
+    }
+
+    .result-body { padding: 1rem; }
+
+    .result-empty {
+      color: #6e7681; text-align: center; padding: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .verdict-row {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 0.75rem; flex-wrap: wrap;
+    }
+
+    .verdict-badge {
+      font-size: 1.25rem; font-weight: 700; text-transform: uppercase;
+      padding: 0.3rem 1rem; border-radius: 6px; letter-spacing: 0.04em;
+    }
+
+    .badge-low    { background: #0d4429; color: #3fb950; border: 1px solid #238636; }
+    .badge-medium { background: #4a3000; color: #d29922; border: 1px solid #9e6a03; }
+    .badge-high   { background: #5a1a1a; color: #f85149; border: 1px solid #da3633; }
+    .badge-learning { background: #1c2541; color: var(--accent, #58a6ff); border: 1px solid #1f6feb; }
+
+    .verdict-conf { font-size: 0.85rem; color: #8b949e; }
+
+    .conf-bar-bg {
+      flex: 1; min-width: 120px; height: 8px;
+      background: #21262d; border-radius: 4px; overflow: hidden;
+    }
+    .conf-bar-fill {
+      height: 100%; border-radius: 4px; transition: width 0.4s;
+    }
+    .fill-low { background: #3fb950; }
+    .fill-medium { background: #d29922; }
+    .fill-high { background: #f85149; }
+
+    .verdict-reason {
+      font-size: 0.9rem; color: #c9d1d9; padding-top: 0.5rem;
+      border-top: 1px solid #21262d;
+    }
+
+    .result-log {
+      margin-top: 0.75rem; padding-top: 0.75rem;
+      border-top: 1px solid #21262d;
+    }
+
+    .log-entry {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0; font-size: 0.8rem; color: #8b949e;
+    }
+
+    .log-time {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.75rem; color: #6e7681; min-width: 70px;
+    }
+
+    .log-tag {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      padding: 1px 6px; border-radius: 3px;
+    }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- Fake site elements --- */
+    .fake-btn {
+      padding: 0.4rem 0.9rem; border: none; border-radius: 5px;
+      font-size: 0.8rem; cursor: pointer; transition: opacity 0.15s;
+    }
+    .fake-btn:hover { opacity: 0.85; }
+    .fake-btn:active { transform: scale(0.97); }
+
+    .product-card {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      padding: 0.75rem; font-size: 0.85rem;
+    }
+    .product-card strong { color: #c9d1d9; display: block; margin-bottom: 0.25rem; }
+    .product-card p { color: #8b949e; margin-bottom: 0.4rem; }
+
+    .doc-link { color: var(--accent, #58a6ff); text-decoration: none; font-weight: 600; }
+    .doc-link:hover { text-decoration: underline; }
+
+    .page-content { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ===== Light theme ===== */
+    :root.light body { background: #f6f8fa; color: #424a53; }
+    :root.light h1 { color: #0969da; }
+    :root.light .subtitle { color: #656d76; }
+    :root.light .status-bar { background: #ffffff; border-color: #d0d7de; }
+    :root.light .status-bar code { background: #e8ecf0; color: #0550ae; }
+    :root.light .pip { background: #e8ecf0; border-color: #d0d7de; }
+    :root.light .interaction-zone { background: #ffffff; border-color: #d0d7de; }
+    :root.light .interaction-zone h2 { color: #656d76; }
+    :root.light textarea { background: #f0f3f6; border-color: #d0d7de; color: #424a53; }
+    :root.light textarea:focus { border-color: #0969da; }
+    :root.light .scroll-box { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
+    :root.light .action-card { background: #ffffff; border-color: #d0d7de; }
+    :root.light .action-card p { color: #656d76; }
+    :root.light .result-panel { background: #ffffff; border-color: #d0d7de; }
+    :root.light .result-header { border-bottom-color: #d0d7de; color: #656d76; }
+    :root.light .result-empty { color: #8b949e; }
+    :root.light .conf-bar-bg { background: #e8ecf0; }
+    :root.light .verdict-reason { color: #424a53; border-top-color: #e8ecf0; }
+    :root.light .verdict-conf { color: #656d76; }
+    :root.light .result-log { border-top-color: #e8ecf0; }
+    :root.light .log-entry { color: #656d76; }
+    :root.light .log-time { color: #8b949e; }
+    :root.light .badge-learning { background: #ddf4ff; color: #0969da; border-color: #54aeff; }
+    :root.light .product-card { background: #f0f3f6; border-color: #d0d7de; }
+    :root.light .product-card strong { color: #424a53; }
+    :root.light .product-card p { color: #656d76; }
+    :root.light .doc-link { color: #0969da; }
+    :root.light [style*="background:#0d1117"] { background: #f0f3f6 !important; border-color: #d0d7de !important; }
+    :root.light [style*="color:#8b949e"] { color: #656d76 !important; }
+    :root.light [style*="color:#c9d1d9"] { color: #424a53 !important; }
+    :root.light [style*="color:#58a6ff"] { color: #0969da !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HumanSeeker Demo</h1>
+    <p class="subtitle">
+      Interact with this page to generate behavioral data, then use the buttons below
+      to calibrate your baseline or run an anomaly test.
+    </p>
+
+    <!-- Step-by-step guide -->
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:#8b949e;line-height:1.7;">
+      <strong style="color:#58a6ff;display:block;margin-bottom:0.3rem;">Quick Start Guide</strong>
+      <strong style="color:#c9d1d9;">Step 1:</strong> Move your mouse, scroll, click, and type in the interaction area below.<br/>
+      <strong style="color:#c9d1d9;">Step 2:</strong> Click <em>"Send Calibration Data"</em> 3 times (interact between each send) to build your baseline.<br/>
+      <strong style="color:#c9d1d9;">Step 3:</strong> Click <em>"Run Anomaly Test"</em> to simulate a bot and see the detection in action.
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="status-dot"></span>
+      <span>Tracker active</span>
+      <span>|</span>
+      <span>User: <code id="uid-display">...</code></span>
+      <div class="baseline-progress">
+        <span id="baseline-label">Baseline:</span>
+        <div class="progress-pips">
+          <span class="pip" id="pip-1"></span>
+          <span class="pip" id="pip-2"></span>
+          <span class="pip" id="pip-3"></span>
+        </div>
+        <span id="baseline-status">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- Interaction zone -->
+    <div class="interaction-zone">
+      <h2>Interaction Area: use these to generate behavioral data</h2>
+
+      <!-- Typing area -->
+      <label style="font-size:0.8rem;color:#8b949e;margin-bottom:0.25rem;display:block;">Type anything here (keystroke timing is captured, not characters):</label>
+      <textarea id="demo-input" placeholder="Start typing to generate keystroke data..."></textarea>
+
+      <!-- Scrollable reading content -->
+      <div class="scroll-box">
+        <p><strong>Scroll through this content</strong> to generate scroll data for the behavioral tracker.</p>
+        <p>Behavioral biometrics identifies users based on how they interact with devices rather than what they know or have. Every person has a unique way of moving their mouse, scrolling, clicking, and typing.</p>
+        <p>When an attacker compromises credentials, they cannot mimic the legitimate user's behavioral patterns. The mouse will move differently, clicks will happen at unusual intervals, and keystroke dynamics will not match.</p>
+        <p>Behavioral monitoring detects anomalies indicating account takeover, bot activity, or insider threats by comparing a session's interaction patterns against a learned baseline.</p>
+        <p>Key metrics include mouse movement velocity and acceleration, scroll pacing and delta, click frequency and spatial distribution, and keystroke timing dynamics including hold duration and inter-key intervals.</p>
+        <p>Combined, these signals create a robust behavioral profile that adapts over time as the user's natural behavior evolves, while still flagging sudden departures that suggest a different human or bot is at the keyboard.</p>
+      </div>
+    </div>
+
+    <!-- Two action buttons -->
+    <div class="actions">
+      <div class="action-card">
+        <h3 style="color: #58a6ff;">Calibration</h3>
+        <p>Send your current interaction data to build your behavioral baseline.
+           You need 3 calibration sessions. Interact with the page between each send.</p>
+        <button class="btn btn-calibrate" id="btn-calibrate" aria-label="Send current interaction data to calibrate your behavioral baseline">
+          <span class="btn-icon" id="cal-icon" aria-hidden="true">&#9881;</span>
+          <span id="cal-text">Send Calibration Data</span>
+        </button>
+      </div>
+
+      <div class="action-card">
+        <h3 style="color: #f85149;">Anomaly Test</h3>
+        <p>Simulate a bot/attacker session with erratic mouse, rapid clicks,
+           and inhuman keystroke timing to trigger a high-risk alert.</p>
+        <button class="btn btn-anomaly" id="btn-anomaly" disabled aria-label="Simulate a bot session to test anomaly detection">
+          <span class="btn-icon" id="anom-icon" aria-hidden="true">&#9888;</span>
+          <span id="anom-text">Run Anomaly Test</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Result panel -->
+    <div class="result-panel">
+      <div class="result-header">Backend Response</div>
+      <div class="result-body" id="result-body">
+        <div class="result-empty" id="result-empty">
+          Welcome! Start by interacting with the page above (move, click, scroll, type), then click "Send Calibration Data" to see your first result here.
+        </div>
+        <div id="result-verdict" role="alert" aria-live="assertive" style="display:none;"></div>
+        <div class="result-log" id="result-log" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracker script -->
+  <script src="tracker.js"></script>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // --- Fake button clicks (generate click data for tracker) ---
+    document.querySelectorAll(".fake-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        btn.style.opacity = "0.6";
+        setTimeout(function () { btn.style.opacity = ""; }, 200);
+      });
+    });
+
+    var BACKEND = window.location.origin || "http://localhost:5000";
+    var userId  = window.__behaviorTracker.getUserId();
+    var calibrationCount = 0;
+    var logEntries = [];
+
+    document.getElementById("uid-display").textContent = userId;
+
+    var btnCal      = document.getElementById("btn-calibrate");
+    var btnAnom     = document.getElementById("btn-anomaly");
+    var calIcon     = document.getElementById("cal-icon");
+    var calText     = document.getElementById("cal-text");
+    var anomIcon    = document.getElementById("anom-icon");
+    var anomText    = document.getElementById("anom-text");
+    var resultEmpty = document.getElementById("result-empty");
+    var resultVerdict = document.getElementById("result-verdict");
+    var resultLog   = document.getElementById("result-log");
+
+    // ---------------------------------------------------------------
+    // Send real captured data to backend (calibration)
+    // ---------------------------------------------------------------
+    btnCal.addEventListener("click", function () {
+      var payload = window.__behaviorTracker.getPayload();
+      var total = payload.mouse_movement.length + payload.scroll_events.length +
+                  payload.clicks.length + payload.keystrokes.length;
+      if (total < 5) {
+        showVerdict(null, "Move the mouse, scroll, click, and type in the box above first. Need more interaction data.");
+        return;
+      }
+
+      setBtnLoading(btnCal, calIcon, calText, "Sending...");
+      sendToBackend(payload, "calibration", function () {
+        resetBtn(btnCal, calIcon, calText, "\u2699", "Send Calibration Data");
+        // Reset tracker buffers for next session
+        window.__behaviorTracker.sendNow = window.__behaviorTracker.sendNow; // noop — buffers already flushed
+      });
+      // Manually reset the tracker buffers after copying payload
+      // We do this by calling the internal reset through sendNow, but we already have the data
+    });
+
+    // ---------------------------------------------------------------
+    // Generate fake anomalous data and send it
+    // ---------------------------------------------------------------
+    btnAnom.addEventListener("click", function () {
+      var fakePayload = generateAnomalousPayload();
+      setBtnLoading(btnAnom, anomIcon, anomText, "Sending...");
+      sendToBackend(fakePayload, "anomaly", function () {
+        resetBtn(btnAnom, anomIcon, anomText, "\u26A0", "Run Anomaly Test");
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // POST to /session, read response, display it
+    // ---------------------------------------------------------------
+    function sendToBackend(payload, tag, onDone) {
+      fetch(BACKEND + "/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      .then(function (res) { return res.json().then(function(d){ return {status: res.status, data: d}; }); })
+      .then(function (resp) {
+        var data = resp.data;
+        if (data.status === "learning") {
+          calibrationCount++;
+          updatePips();
+          showVerdict(null, data.message + " (" + calibrationCount + "/3 sent)");
+          addLog(tag, "learning", data.message);
+        } else if (data.risk_level) {
+          if (calibrationCount < 3) calibrationCount = 3;
+          updatePips();
+          showVerdict(data, null);
+          addLog(tag, data.risk_level, data.reason);
+          // If this was an anomaly test, notify parent that demo is complete
+          if (tag === "anomaly" && window.parent !== window) {
+            window.parent.postMessage("demo_completed", "*");
+          }
+        } else if (data.error) {
+          showVerdict(null, "Error: " + data.error);
+          addLog(tag, "error", data.error);
+        }
+        if (onDone) onDone();
+      })
+      .catch(function (err) {
+        showVerdict(null, "Failed to reach backend: " + err.message);
+        addLog(tag, "error", err.message);
+        if (onDone) onDone();
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // Generate an obviously anomalous payload (bot simulation)
+    // ---------------------------------------------------------------
+    function generateAnomalousPayload() {
+      var mouse = [], scrolls = [], clicks = [], keys = [];
+      var t = 0;
+
+      // Erratic mouse: huge teleporting jumps, inhuman speed
+      for (var i = 0; i < 80; i++) {
+        t += Math.floor(Math.random() * 10) + 3; // 3-13ms between moves
+        mouse.push({
+          x: Math.floor(Math.random() * 1920),
+          y: Math.floor(Math.random() * 1080),
+          t: t
+        });
+      }
+
+      // Rapid scroll: massive deltas at machine-gun pace
+      for (var j = 0; j < 50; j++) {
+        t += Math.floor(Math.random() * 100) + 30;
+        scrolls.push({ delta: Math.floor(Math.random() * 2000) + 500, t: t });
+      }
+
+      // Machine-gun clicks: 40 clicks in under 2 seconds
+      for (var k = 0; k < 40; k++) {
+        t += Math.floor(Math.random() * 50) + 10;
+        clicks.push({
+          x: Math.floor(Math.random() * 1920),
+          y: Math.floor(Math.random() * 1080),
+          t: t
+        });
+      }
+
+      // Instant keystrokes: 5ms hold, 10ms between presses
+      for (var m = 0; m < 80; m++) {
+        t += Math.floor(Math.random() * 15) + 5;
+        keys.push({ key: "key", down: t, up: t + Math.floor(Math.random() * 8) + 3 });
+        t += 5;
+      }
+
+      return {
+        user_id: userId,
+        mouse_movement: mouse,
+        scroll_events: scrolls,
+        clicks: clicks,
+        keystrokes: keys
+      };
+    }
+
+    // ---------------------------------------------------------------
+    // UI helpers
+    // ---------------------------------------------------------------
+    function showVerdict(verdict, message) {
+      resultEmpty.style.display = "none";
+      resultVerdict.style.display = "block";
+
+      if (!verdict) {
+        resultVerdict.innerHTML =
+          '<div class="verdict-row">' +
+            '<span class="verdict-badge badge-learning">' + (message && message.indexOf("Error") === 0 ? "ERROR" : "LEARNING") + '</span>' +
+          '</div>' +
+          '<div class="verdict-reason">' + escapeHtml(message) + '</div>';
+        return;
+      }
+
+      var lvl = verdict.risk_level;
+      var pct = Math.round(verdict.confidence * 100);
+      resultVerdict.innerHTML =
+        '<div class="verdict-row">' +
+          '<span class="verdict-badge badge-' + lvl + '">' + lvl + '</span>' +
+          '<span class="verdict-conf">' + pct + '% confidence</span>' +
+          '<div class="conf-bar-bg"><div class="conf-bar-fill fill-' + lvl + '" style="width:' + pct + '%"></div></div>' +
+        '</div>' +
+        '<div class="verdict-reason">' + escapeHtml(verdict.reason) + '</div>';
+    }
+
+    function addLog(tag, level, text) {
+      logEntries.unshift({ time: new Date(), tag: tag, level: level, text: text });
+      if (logEntries.length > 10) logEntries.pop();
+
+      resultLog.style.display = "block";
+      var html = "";
+      for (var i = 0; i < logEntries.length; i++) {
+        var e = logEntries[i];
+        var badgeClass = "badge-" + (e.level === "error" ? "high" : e.level === "learning" ? "learning" : e.level);
+        html +=
+          '<div class="log-entry">' +
+            '<span class="log-time">' + e.time.toLocaleTimeString() + '</span>' +
+            '<span class="log-tag ' + badgeClass + '">' + e.tag + '</span>' +
+            '<span>' + escapeHtml(e.text.substring(0, 100)) + '</span>' +
+          '</div>';
+      }
+      resultLog.innerHTML = html;
+    }
+
+    function updatePips() {
+      for (var i = 1; i <= 3; i++) {
+        var pip = document.getElementById("pip-" + i);
+        if (i <= calibrationCount) pip.classList.add("filled");
+      }
+      var status = document.getElementById("baseline-status");
+      if (calibrationCount >= 3) {
+        status.textContent = "Ready";
+        status.style.color = "#3fb950";
+        document.getElementById("baseline-label").textContent = "Baseline:";
+        // Enable anomaly test button
+        btnAnom.disabled = false;
+      } else {
+        status.textContent = calibrationCount + " / 3";
+      }
+    }
+
+    function setBtnLoading(btn, iconEl, textEl, loadText) {
+      btn.disabled = true;
+      iconEl.innerHTML = '<span class="spinner"></span>';
+      textEl.textContent = loadText;
+    }
+
+    function resetBtn(btn, iconEl, textEl, icon, text) {
+      btn.disabled = false;
+      iconEl.innerHTML = icon;
+      textEl.textContent = text;
+    }
+
+    function escapeHtml(str) {
+      var d = document.createElement("div");
+      d.appendChild(document.createTextNode(str));
+      return d.innerHTML;
+    }
+
+    // Self-apply appearance settings
+    fetch("/api/appearance")
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.theme === "light") document.documentElement.classList.add("light");
+        if (data.accent) document.documentElement.style.setProperty("--accent", data.accent);
+      })
+      .catch(function() {});
+
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HumanSeeker: Dashboard</title>
+  <style>
+    :root { --accent: #58a6ff; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1117; color: #c9d1d9; line-height: 1.6; padding: 1.5rem;
+    }
+
+    .container { max-width: 940px; margin: 0 auto; }
+
+    /* --- Header --- */
+    .dash-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;
+    }
+
+    .dash-header h1 { font-size: 1.35rem; color: var(--accent, #58a6ff); }
+
+    .controls { display: flex; align-items: center; gap: 0.6rem; }
+    .controls label { font-size: 0.8rem; color: #8b949e; }
+
+    .controls input {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      color: #c9d1d9; padding: 0.35rem 0.6rem; font-size: 0.8rem; width: 200px;
+    }
+    .controls input:focus { outline: none; border-color: var(--accent, #58a6ff); }
+
+    .controls button {
+      background: #238636; color: #fff; border: none;
+      padding: 0.35rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+    }
+    .controls button:hover { background: #2ea043; }
+
+    .poll-info {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; color: #6e7681; margin-bottom: 1.25rem;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #6e7681;
+    }
+    .live-dot.active { background: #3fb950; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* --- Counter cards --- */
+    .counters {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem; margin-bottom: 1.25rem;
+    }
+
+    .counter-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1rem; text-align: center;
+    }
+
+    .counter-number {
+      font-size: 2rem; font-weight: 700; line-height: 1.2;
+      transition: color 0.3s;
+    }
+
+    .counter-label {
+      font-size: 0.75rem; color: #8b949e; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-top: 0.15rem;
+    }
+
+    .c-total .counter-number { color: var(--accent, #58a6ff); }
+    .c-low .counter-number { color: #3fb950; }
+    .c-medium .counter-number { color: #d29922; }
+    .c-high .counter-number { color: #f85149; }
+
+    .c-total  { border-top: 3px solid var(--accent, #58a6ff); }
+    .c-low    { border-top: 3px solid #3fb950; }
+    .c-medium { border-top: 3px solid #d29922; }
+    .c-high   { border-top: 3px solid #f85149; }
+
+    /* --- Current verdict --- */
+    .verdict-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+
+    .verdict-card h2 {
+      font-size: 0.85rem; color: #8b949e; margin-bottom: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .risk-row {
+      display: flex; align-items: center; gap: 1.25rem;
+      margin-bottom: 0.6rem; flex-wrap: wrap;
+    }
+
+    .risk-badge {
+      font-size: 1.5rem; font-weight: 700; text-transform: uppercase;
+      padding: 0.35rem 1rem; border-radius: 6px; letter-spacing: 0.04em;
+      transition: all 0.3s;
+    }
+
+    .risk-low    { background: #0d4429; color: #3fb950; border: 1px solid #238636; }
+    .risk-medium { background: #4a3000; color: #d29922; border: 1px solid #9e6a03; }
+    .risk-high   { background: #5a1a1a; color: #f85149; border: 1px solid #da3633; }
+    .risk-none   { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+
+    .conf-area { flex: 1; min-width: 160px; }
+    .conf-label { font-size: 0.8rem; color: #8b949e; margin-bottom: 0.25rem; }
+
+    .conf-bar-bg {
+      width: 100%; height: 10px; background: #21262d;
+      border-radius: 5px; overflow: hidden;
+    }
+    .conf-bar-fill {
+      height: 100%; border-radius: 5px; transition: width 0.4s;
+    }
+    .fill-low { background: #3fb950; }
+    .fill-medium { background: #d29922; }
+    .fill-high { background: #f85149; }
+
+    .verdict-reason {
+      font-size: 0.88rem; color: #c9d1d9; padding-top: 0.6rem;
+      border-top: 1px solid #21262d;
+    }
+
+    .verdict-time {
+      font-size: 0.75rem; color: #6e7681; margin-top: 0.35rem;
+      font-family: "SF Mono","Fira Code",monospace;
+    }
+
+    /* --- Anomaly Alert Log --- */
+    .alert-section {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .alert-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1rem; border-bottom: 1px solid #30363d;
+    }
+
+    .alert-header h2 {
+      font-size: 0.85rem; color: #8b949e; text-transform: uppercase;
+      letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .alert-count-badge {
+      background: #f85149; color: #fff; font-size: 0.7rem; font-weight: 700;
+      padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+    }
+    .alert-count-badge.zero { background: #21262d; color: #6e7681; }
+
+    .alert-list {
+      max-height: 350px; overflow-y: auto; padding: 0.5rem 0;
+    }
+
+    .alert-entry {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.6rem 1rem; border-bottom: 1px solid #1a1f29;
+      animation: slideIn 0.3s ease;
+    }
+    .alert-entry:last-child { border-bottom: none; }
+
+    @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+    .alert-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; flex-shrink: 0; margin-top: 2px;
+    }
+    .alert-icon.high { background: #5a1a1a; color: #f85149; }
+    .alert-icon.medium { background: #4a3000; color: #d29922; }
+
+    .alert-body { flex: 1; }
+
+    .alert-title {
+      font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem;
+    }
+    .alert-title.high { color: #f85149; }
+    .alert-title.medium { color: #d29922; }
+
+    .alert-detail {
+      font-size: 0.8rem; color: #8b949e; line-height: 1.4;
+    }
+
+    .alert-timestamp {
+      font-size: 0.7rem; color: #6e7681; white-space: nowrap;
+      font-family: "SF Mono","Fira Code",monospace; margin-top: 4px;
+    }
+
+    .alert-empty {
+      text-align: center; color: #6e7681; padding: 2.5rem 1rem;
+      font-size: 0.88rem;
+    }
+
+    /* ===== Light theme ===== */
+    :root.light body { background: #f6f8fa; color: #424a53; }
+    :root.light .dash-header h1 { color: #0969da; }
+    :root.light .controls label { color: #656d76; }
+    :root.light .controls input { background: #f0f3f6; border-color: #d0d7de; color: #424a53; }
+    :root.light .controls input:focus { border-color: #0969da; }
+    :root.light .poll-info { color: #8b949e; }
+    :root.light .live-dot { background: #8b949e; }
+    :root.light .counter-card { background: #ffffff; border-color: #d0d7de; }
+    :root.light .counter-label { color: #656d76; }
+    :root.light .c-total { border-top-color: #0969da; }
+    :root.light .c-total .counter-number { color: #0969da; }
+    :root.light .verdict-card { background: #ffffff; border-color: #d0d7de; }
+    :root.light .verdict-card h2 { color: #656d76; }
+    :root.light .risk-none { background: #e8ecf0; color: #656d76; border-color: #d0d7de; }
+    :root.light .conf-label { color: #656d76; }
+    :root.light .conf-bar-bg { background: #e8ecf0; }
+    :root.light .verdict-reason { color: #424a53; border-top-color: #e8ecf0; }
+    :root.light .verdict-time { color: #8b949e; }
+    :root.light .alert-section { background: #ffffff; border-color: #d0d7de; }
+    :root.light .alert-header { border-bottom-color: #d0d7de; }
+    :root.light .alert-header h2 { color: #656d76; }
+    :root.light .alert-count-badge.zero { background: #e8ecf0; color: #8b949e; }
+    :root.light .alert-entry { border-bottom-color: #e8ecf0; }
+    :root.light .alert-detail { color: #656d76; }
+    :root.light .alert-timestamp { color: #8b949e; }
+    :root.light .alert-empty { color: #8b949e; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dash-header">
+      <h1>Security Dashboard</h1>
+      <div class="controls">
+        <label for="uid-input">User ID:</label>
+        <input type="text" id="uid-input" placeholder="user_abc123" aria-label="User ID for monitoring" />
+        <button id="start-btn" aria-label="Start monitoring the specified user">Start Monitoring</button>
+      </div>
+    </div>
+
+    <div class="poll-info" role="status" aria-live="polite">
+      <span class="live-dot" id="live-dot" aria-hidden="true"></span>
+      <span id="poll-status">Not monitoring. Enter a user ID above and click "Start Monitoring" to begin.</span>
+    </div>
+
+    <!-- Live counters -->
+    <div class="counters" role="region" aria-label="Session risk counters">
+      <div class="counter-card c-total">
+        <div class="counter-number" id="cnt-total" aria-label="Total sessions count">0</div>
+        <div class="counter-label">Total Sessions</div>
+      </div>
+      <div class="counter-card c-low">
+        <div class="counter-number" id="cnt-low" aria-label="Low risk sessions count">0</div>
+        <div class="counter-label">Low Risk</div>
+      </div>
+      <div class="counter-card c-medium">
+        <div class="counter-number" id="cnt-medium" aria-label="Medium risk sessions count">0</div>
+        <div class="counter-label">Medium Risk</div>
+      </div>
+      <div class="counter-card c-high">
+        <div class="counter-number" id="cnt-high" aria-label="High risk sessions count">0</div>
+        <div class="counter-label">High Risk</div>
+      </div>
+    </div>
+
+    <!-- Current verdict -->
+    <div class="verdict-card">
+      <h2>Current Risk Verdict</h2>
+      <div class="risk-row">
+        <span class="risk-badge risk-none" id="risk-badge" role="status" aria-live="polite" aria-label="Current risk level">Waiting</span>
+        <div class="conf-area">
+          <div class="conf-label">Confidence: <span id="conf-value">--</span></div>
+          <div class="conf-bar-bg">
+            <div class="conf-bar-fill" id="conf-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="verdict-reason" id="reason-text">No data yet. Start monitoring a user to see risk verdicts here.</div>
+      <div class="verdict-time" id="verdict-time"></div>
+    </div>
+
+    <!-- Anomaly alert log -->
+    <div class="alert-section">
+      <div class="alert-header">
+        <h2>
+          Anomaly Alerts
+          <span class="alert-count-badge zero" id="alert-count">0</span>
+        </h2>
+      </div>
+      <div class="alert-list" id="alert-list" role="log" aria-label="Anomaly alert log">
+        <div class="alert-empty" id="alert-empty">No anomalies detected yet. Once monitoring begins, medium and high risk events will appear here automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var BACKEND = window.location.origin || "http://localhost:5000";
+    var POLL_MS = 3000;
+    var pollTimer = null;
+    var knownAlertCount = 0;
+
+    // DOM refs
+    var uidInput    = document.getElementById("uid-input");
+    var startBtn    = document.getElementById("start-btn");
+    var liveDot     = document.getElementById("live-dot");
+    var pollStatus  = document.getElementById("poll-status");
+    var cntTotal    = document.getElementById("cnt-total");
+    var cntLow      = document.getElementById("cnt-low");
+    var cntMedium   = document.getElementById("cnt-medium");
+    var cntHigh     = document.getElementById("cnt-high");
+    var riskBadge   = document.getElementById("risk-badge");
+    var confValue   = document.getElementById("conf-value");
+    var confBar     = document.getElementById("conf-bar");
+    var reasonText  = document.getElementById("reason-text");
+    var verdictTime = document.getElementById("verdict-time");
+    var alertCount  = document.getElementById("alert-count");
+    var alertList   = document.getElementById("alert-list");
+    var alertEmpty  = document.getElementById("alert-empty");
+
+    // Pre-fill UID
+    try {
+      var stored = localStorage.getItem("behavioral_tracker_uid");
+      if (stored) uidInput.value = stored;
+    } catch (_) {}
+
+    startBtn.addEventListener("click", function () {
+      var uid = uidInput.value.trim();
+      if (!uid) { alert("Enter a user ID."); return; }
+
+      if (pollTimer) clearInterval(pollTimer);
+      knownAlertCount = 0;
+
+      liveDot.classList.add("active");
+      pollStatus.textContent = "Live: polling every " + (POLL_MS / 1000) + "s";
+      startBtn.textContent = "Restart";
+
+      poll(uid);
+      pollTimer = setInterval(function () { poll(uid); }, POLL_MS);
+    });
+
+    function poll(uid) {
+      // Fetch counters, latest verdict, and history in parallel
+      Promise.all([
+        fetch(BACKEND + "/api/counters?user_id=" + encodeURIComponent(uid)).then(r),
+        fetch(BACKEND + "/latest?user_id=" + encodeURIComponent(uid)).then(r),
+        fetch(BACKEND + "/api/history?user_id=" + encodeURIComponent(uid)).then(r),
+      ]).then(function (results) {
+        var counters = results[0];
+        var latest   = results[1];
+        var history  = results[2];
+
+        updateCounters(counters);
+        updateVerdict(latest);
+        updateAlerts(history);
+      }).catch(function (err) {
+        pollStatus.textContent = "Error: " + err.message;
+      });
+    }
+
+    function r(resp) { return resp.json(); }
+
+    // --- Counters ---
+    function updateCounters(c) {
+      animateCounter(cntTotal, c.total || 0);
+      animateCounter(cntLow, c.low || 0);
+      animateCounter(cntMedium, c.medium || 0);
+      animateCounter(cntHigh, c.high || 0);
+    }
+
+    function animateCounter(el, target) {
+      var current = parseInt(el.textContent, 10) || 0;
+      if (current === target) return;
+      el.textContent = target;
+      el.style.transform = "scale(1.2)";
+      setTimeout(function () { el.style.transform = "scale(1)"; }, 200);
+    }
+
+    // --- Current verdict ---
+    function updateVerdict(data) {
+      if (!data || data.status === "learning" || data.status === "waiting" || data.error) {
+        riskBadge.textContent = "Waiting";
+        riskBadge.className = "risk-badge risk-none";
+        confValue.textContent = "--";
+        confBar.style.width = "0%";
+        confBar.className = "conf-bar-fill";
+        reasonText.textContent = data ? (data.message || data.error || "No data.") : "No data.";
+        verdictTime.textContent = "";
+        return;
+      }
+
+      var lvl = data.risk_level;
+      riskBadge.textContent = lvl;
+      riskBadge.className = "risk-badge risk-" + lvl;
+
+      var pct = Math.round(data.confidence * 100);
+      confValue.textContent = pct + "%";
+      confBar.style.width = pct + "%";
+      confBar.className = "conf-bar-fill fill-" + lvl;
+
+      reasonText.textContent = data.reason;
+
+      if (data.timestamp) {
+        var d = new Date(data.timestamp);
+        verdictTime.textContent = "Last updated: " + formatDateTime(d);
+      }
+    }
+
+    // --- Anomaly alerts (medium + high only) ---
+    function updateAlerts(history) {
+      if (!Array.isArray(history)) return;
+
+      var anomalies = history.filter(function (v) {
+        return v.risk_level === "medium" || v.risk_level === "high";
+      });
+
+      // Update badge count
+      var count = anomalies.length;
+      alertCount.textContent = count;
+      alertCount.className = count > 0 ? "alert-count-badge" : "alert-count-badge zero";
+
+      if (anomalies.length === 0) {
+        alertEmpty.style.display = "";
+        return;
+      }
+      alertEmpty.style.display = "none";
+
+      // Only re-render if count changed
+      if (anomalies.length === knownAlertCount) return;
+      knownAlertCount = anomalies.length;
+
+      var html = "";
+      for (var i = 0; i < anomalies.length; i++) {
+        var a = anomalies[i];
+        var lvl = a.risk_level;
+        var dt = new Date(a.timestamp);
+        var pct = Math.round(a.confidence * 100);
+
+        html +=
+          '<div class="alert-entry">' +
+            '<div class="alert-icon ' + lvl + '">' + (lvl === "high" ? "\u26A0" : "\u26AB") + '</div>' +
+            '<div class="alert-body">' +
+              '<div class="alert-title ' + lvl + '">' +
+                (lvl === "high" ? "High Risk Detected" : "Medium Risk Detected") +
+                ' &mdash; ' + pct + '% confidence' +
+              '</div>' +
+              '<div class="alert-detail">' + esc(a.reason) + '</div>' +
+            '</div>' +
+            '<div class="alert-timestamp">' + formatDateTime(dt) + '</div>' +
+          '</div>';
+      }
+
+      alertList.innerHTML = html;
+    }
+
+    // --- Helpers ---
+    function formatDateTime(d) {
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var mon = months[d.getMonth()];
+      var day = d.getDate();
+      var year = d.getFullYear();
+      var h = d.getHours();
+      var m = d.getMinutes();
+      var s = d.getSeconds();
+      var ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      m = m < 10 ? "0" + m : m;
+      s = s < 10 ? "0" + s : s;
+      return mon + " " + day + ", " + year + " " + h + ":" + m + ":" + s + " " + ampm;
+    }
+
+    function esc(str) {
+      var d = document.createElement("div");
+      d.appendChild(document.createTextNode(str));
+      return d.innerHTML;
+    }
+
+    // Self-apply appearance settings
+    fetch("/api/appearance")
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.theme === "light") document.documentElement.classList.add("light");
+        if (data.accent) document.documentElement.style.setProperty("--accent", data.accent);
+      })
+      .catch(function() {});
+
+  })();
+  </script>
+</body>
+</html>

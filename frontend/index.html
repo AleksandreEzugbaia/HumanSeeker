@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HumanSeeker</title>
+  <style>
+    :root {
+      --bg-primary: #0f1117;
+      --bg-secondary: #161b22;
+      --border-color: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+    }
+
+    /* Light theme overrides */
+    :root.light {
+      --bg-primary: #f6f8fa;
+      --bg-secondary: #ffffff;
+      --border-color: #d0d7de;
+      --text-primary: #1f2328;
+      --text-secondary: #424a53;
+      --text-muted: #656d76;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    /* --- Top navigation bar --- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 1rem;
+      height: 48px;
+      flex-shrink: 0;
+      transition: background 0.4s ease, border-color 0.4s ease;
+    }
+
+    /* Column layout: topbar becomes a sidebar */
+    body.nav-column .topbar {
+      flex-direction: column;
+      height: auto;
+      width: 180px;
+      padding: 1rem 0.5rem;
+      border-bottom: none;
+      border-right: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    body.nav-column {
+      flex-direction: row;
+    }
+
+    body.nav-column .frame-container {
+      flex: 1;
+      height: 100%;
+    }
+
+    .app-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-right: 2rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.3s ease;
+    }
+
+    body.nav-column .app-title {
+      margin-right: 0;
+      margin-bottom: 1rem;
+      padding: 0 0.5rem;
+    }
+
+    .app-title svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+      transition: fill 0.3s ease;
+    }
+
+    .nav-tabs {
+      display: flex;
+      height: 100%;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, opacity 0.3s;
+      user-select: none;
+    }
+
+    body.nav-column .nav-tabs {
+      flex-direction: column;
+      height: auto;
+      width: 100%;
+      gap: 0.15rem;
+    }
+
+    body.nav-column .nav-tab {
+      padding: 0.55rem 0.75rem;
+      border-bottom: none;
+      border-left: 2px solid transparent;
+      border-radius: 0 4px 4px 0;
+      align-items: flex-start;
+    }
+
+    body.nav-column .nav-tab.active {
+      border-left-color: var(--accent);
+      border-bottom-color: transparent;
+      background: rgba(88, 166, 255, 0.06);
+    }
+
+    body.nav-column .spacer { display: none; }
+
+    .tab-wip-label {
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: #d29922;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      margin-bottom: -1px;
+    }
+
+    .nav-tab:hover { color: var(--text-secondary); }
+
+    .nav-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .nav-tab.demo-bold {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    .nav-tab.demo-completed {
+      opacity: 0.45;
+    }
+
+    .spacer { flex: 1; }
+
+    /* --- Light mode separator bar --- */
+    .theme-separator {
+      height: 0;
+      background: var(--border-color);
+      flex-shrink: 0;
+      transition: height 0.3s ease, background 0.3s ease;
+    }
+
+    :root.light ~ body .theme-separator,
+    body.light-active .theme-separator {
+      height: 3px;
+      background: #d0d7de;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    body.nav-column .theme-separator {
+      height: 100%;
+      width: 0;
+      transition: width 0.3s ease;
+    }
+
+    body.nav-column.light-active .theme-separator {
+      width: 3px;
+      height: auto;
+    }
+
+    /* --- Page transition container --- */
+    .frame-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1),
+                  opacity 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* Slide out to the left (navigating right/forward) */
+    .content-frame.exit-left {
+      transform: translateX(-60px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Slide out to the right (navigating left/backward) */
+    .content-frame.exit-right {
+      transform: translateX(60px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Enter from the right (navigating right/forward) */
+    .content-frame.enter-right {
+      transform: translateX(60px);
+      opacity: 0;
+      transition: none;
+    }
+
+    /* Enter from the left (navigating left/backward) */
+    .content-frame.enter-left {
+      transform: translateX(-60px);
+      opacity: 0;
+      transition: none;
+    }
+
+    /* --- Confirmation modal --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.75rem;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9) translateY(10px);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  opacity 0.25s ease;
+    }
+
+    .modal-overlay.visible .modal-box {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    .modal-box h3 {
+      font-size: 1.05rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-box p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-box p strong {
+      color: #d29922;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .modal-btn:active { transform: scale(0.96); }
+
+    .modal-btn-stay {
+      background: #1f6feb;
+      color: #fff;
+    }
+    .modal-btn-stay:hover { background: #388bfd; }
+
+    .modal-btn-leave {
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid #30363d;
+    }
+    .modal-btn-leave:hover { background: #30363d; color: #c9d1d9; }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <div class="app-title">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.06-7 10.2-3.87-1.14-7-5.53-7-10.2V6.3l7-3.12z"/></svg>
+      HumanSeeker
+    </div>
+
+    <div class="nav-tabs" id="nav-tabs">
+      <!-- Order set dynamically by JS based on demo completion status -->
+    </div>
+
+    <div class="spacer"></div>
+  </nav>
+
+  <!-- Confirmation modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <h3>Complete the Demo First?</h3>
+      <p>We really recommend trying the demo first so you have a grasp of what the application does.<br><br>
+      Are you sure you want to move on to <strong id="modal-page-name">Dashboard</strong>?</p>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-stay" id="modal-stay">Back to Demo</button>
+        <button class="modal-btn modal-btn-leave" id="modal-leave">Yes, skip</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="theme-separator"></div>
+  <div class="frame-container">
+    <iframe class="content-frame" id="content-frame" src="about:blank"></iframe>
+  </div>
+
+  <script>
+    (function () {
+      var navTabsContainer = document.getElementById("nav-tabs");
+      var frame = document.getElementById("content-frame");
+      var modalOverlay = document.getElementById("modal-overlay");
+      var modalPageName = document.getElementById("modal-page-name");
+      var modalStay = document.getElementById("modal-stay");
+      var modalLeave = document.getElementById("modal-leave");
+
+      var demoCompleted = false;
+      var pendingPage = null;
+      var popupShown = false;
+      var currentPageIndex = 0;
+      var transitioning = false;
+
+      var pageNames = {
+        "dashboard.html": "Dashboard",
+        "demo.html": "Demo",
+        "edition.html": "Edition",
+        "settings.html": "Settings"
+      };
+
+      // Current tab order (set by buildTabs)
+      var currentTabOrder = [];
+
+      function getPageIndex(page) {
+        var idx = currentTabOrder.indexOf(page);
+        return idx >= 0 ? idx : 0;
+      }
+
+      // --- Page transition ---
+      function transitionTo(newPage) {
+        if (transitioning) return;
+
+        var newIndex = getPageIndex(newPage);
+        var currentSrc = frame.src.split("/").pop().split("?")[0];
+        var oldIndex = getPageIndex(currentSrc);
+
+        // If same page, skip
+        if (newPage === currentSrc) return;
+
+        transitioning = true;
+        var goingRight = newIndex > oldIndex;
+
+        // Step 1: slide current page out
+        frame.classList.add(goingRight ? "exit-left" : "exit-right");
+
+        // Step 2: after exit animation, swap src and enter from opposite side
+        setTimeout(function () {
+          // Position new page at entry point (no transition)
+          frame.classList.remove("exit-left", "exit-right");
+          frame.classList.add(goingRight ? "enter-right" : "enter-left");
+          frame.src = newPage;
+
+          // Step 3: after a tiny paint delay, animate in
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              frame.classList.remove("enter-right", "enter-left");
+              transitioning = false;
+            });
+          });
+        }, 300);
+      }
+
+      // --- Build tabs in the correct order based on demo status ---
+      function buildTabs(demoIsDone) {
+        navTabsContainer.innerHTML = "";
+
+        if (demoIsDone) {
+          currentTabOrder = ["dashboard.html", "edition.html", "settings.html", "demo.html"];
+        } else {
+          currentTabOrder = ["demo.html", "dashboard.html", "edition.html", "settings.html"];
+        }
+
+        currentTabOrder.forEach(function (page) {
+          var tab = document.createElement("div");
+          tab.className = "nav-tab";
+          tab.setAttribute("data-page", page);
+
+          if (page === "edition.html") {
+            var wipLabel = document.createElement("span");
+            wipLabel.className = "tab-wip-label";
+            wipLabel.textContent = "Under Construction";
+            tab.appendChild(wipLabel);
+          }
+
+          var nameSpan = document.createElement("span");
+          nameSpan.textContent = pageNames[page];
+          tab.appendChild(nameSpan);
+
+          if (page === "demo.html") {
+            if (demoIsDone) {
+              tab.classList.add("demo-completed");
+            } else {
+              tab.classList.add("demo-bold");
+            }
+          }
+
+          navTabsContainer.appendChild(tab);
+        });
+
+        // Set active tab and load page (no transition on initial load)
+        var defaultPage = demoIsDone ? "dashboard.html" : "demo.html";
+        var activeTab = document.querySelector('[data-page="' + defaultPage + '"]');
+        if (activeTab) activeTab.classList.add("active");
+        currentPageIndex = getPageIndex(defaultPage);
+        frame.src = defaultPage;
+      }
+
+      // --- Fetch demo status from server, then build UI ---
+      fetch("/api/demo-status")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          demoCompleted = data.completed;
+          buildTabs(demoCompleted);
+        })
+        .catch(function () {
+          buildTabs(false);
+        });
+
+      // --- Tab click handler (delegated) ---
+      navTabsContainer.addEventListener("click", function (e) {
+        var tab = e.target.closest(".nav-tab");
+        if (!tab || transitioning) return;
+
+        var targetPage = tab.getAttribute("data-page");
+
+        if (!demoCompleted && !popupShown && targetPage !== "demo.html") {
+          popupShown = true;
+          pendingPage = targetPage;
+          modalPageName.textContent = pageNames[targetPage] || targetPage;
+          modalOverlay.classList.add("visible");
+          return;
+        }
+
+        navigateTo(tab);
+      });
+
+      // Modal: stay on demo
+      modalStay.addEventListener("click", function () {
+        modalOverlay.classList.remove("visible");
+        pendingPage = null;
+      });
+
+      // Modal: skip and go
+      modalLeave.addEventListener("click", function () {
+        modalOverlay.classList.remove("visible");
+        if (pendingPage) {
+          var page = pendingPage;
+          pendingPage = null;
+          transitioning = false;
+
+          // Update tab visuals
+          var allTabs = document.querySelectorAll(".nav-tab");
+          allTabs.forEach(function (t) { t.classList.remove("active"); });
+          var targetTab = document.querySelector('[data-page="' + page + '"]');
+          if (targetTab) targetTab.classList.add("active");
+
+          // Directly load the page (bypass transition to guarantee it works)
+          frame.classList.remove("exit-left", "exit-right", "enter-left", "enter-right");
+          frame.src = page;
+          currentPageIndex = getPageIndex(page);
+        }
+      });
+
+      function navigateTo(tab) {
+        var allTabs = document.querySelectorAll(".nav-tab");
+        allTabs.forEach(function (t) { t.classList.remove("active"); });
+        tab.classList.add("active");
+
+        var targetPage = tab.getAttribute("data-page");
+        transitionTo(targetPage);
+        currentPageIndex = getPageIndex(targetPage);
+      }
+
+      // --- Appearance settings ---
+      function loadAppearance() {
+        fetch("/api/appearance")
+          .then(function (r) { return r.json(); })
+          .then(function (data) { applyAppearance(data); })
+          .catch(function () {});
+      }
+
+      function applyAppearance(data) {
+        var root = document.documentElement;
+
+        // Theme
+        if (data.theme === "light") {
+          root.classList.add("light");
+          document.body.classList.add("light-active");
+        } else {
+          root.classList.remove("light");
+          document.body.classList.remove("light-active");
+        }
+
+        // Accent color
+        if (data.accent) {
+          root.style.setProperty("--accent", data.accent);
+        }
+
+        // Nav layout
+        if (data.nav_layout === "column") {
+          document.body.classList.add("nav-column");
+        } else {
+          document.body.classList.remove("nav-column");
+        }
+
+        // Pass theme to iframe content
+        try {
+          var iframeDoc = frame.contentDocument || frame.contentWindow.document;
+          if (iframeDoc && iframeDoc.documentElement) {
+            iframeDoc.documentElement.classList.toggle("light", data.theme === "light");
+            if (data.accent) {
+              iframeDoc.documentElement.style.setProperty("--accent", data.accent);
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Re-apply theme when iframe loads a new page
+      frame.addEventListener("load", function () {
+        fetch("/api/appearance")
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            try {
+              var iframeDoc = frame.contentDocument || frame.contentWindow.document;
+              if (iframeDoc && iframeDoc.documentElement) {
+                iframeDoc.documentElement.classList.toggle("light", data.theme === "light");
+                if (data.accent) {
+                  iframeDoc.documentElement.style.setProperty("--accent", data.accent);
+                }
+              }
+            } catch (e) {}
+          })
+          .catch(function () {});
+      });
+
+      loadAppearance();
+
+      // --- Listen for messages from iframes ---
+      window.addEventListener("message", function (e) {
+        if (e.data && e.data.type === "appearance_changed") {
+          loadAppearance();
+          return;
+        }
+        if (e.data === "demo_completed" && !demoCompleted) {
+          demoCompleted = true;
+          fetch("/api/demo-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          });
+          var currentPage = frame.src.split("/").pop().split("?")[0];
+          buildTabs(true);
+          var activeTab = document.querySelector('[data-page="' + currentPage + '"]');
+          if (activeTab) {
+            document.querySelectorAll(".nav-tab").forEach(function (t) { t.classList.remove("active"); });
+            activeTab.classList.add("active");
+          }
+          currentPageIndex = getPageIndex(currentPage);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

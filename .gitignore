@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+
+# Embedded Python distribution
+python/
+
+# Build artifacts
+dist/
+dist2/
+dist3/
+dist4/
+dist5/
+release/
+final/
+app/
+build/
+*.spec
+
+# Runtime data
+backend/baselines/*.json
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/

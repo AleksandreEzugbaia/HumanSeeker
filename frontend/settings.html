@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings: HumanSeeker</title>
+  <style>
+    :root { --accent: #58a6ff; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1117; color: #c9d1d9; line-height: 1.6; padding: 2rem;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; }
+
+    h1 { font-size: 1.4rem; color: #f0f6fc; margin-bottom: 0.2rem; }
+    .subtitle { color: #8b949e; font-size: 0.88rem; margin-bottom: 1.75rem; }
+
+    /* --- Cards --- */
+    .card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 0.95rem; color: #c9d1d9; margin-bottom: 0.6rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+
+    .card-icon { font-size: 1.1rem; }
+
+    /* --- Form elements --- */
+    .form-group { margin-bottom: 0.9rem; }
+
+    .form-group label {
+      display: block; font-size: 0.82rem; color: #8b949e;
+      margin-bottom: 0.3rem;
+    }
+
+    .input-row { display: flex; gap: 0.5rem; }
+
+    input[type="password"], input[type="text"], input[type="number"] {
+      flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      color: #c9d1d9; padding: 0.5rem 0.7rem; font-size: 0.88rem;
+      font-family: "SF Mono","Fira Code",Consolas,monospace;
+    }
+    input:focus { outline: none; border-color: var(--accent, #58a6ff); }
+
+    select {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      color: #c9d1d9; padding: 0.5rem 0.7rem; font-size: 0.88rem; width: 100%;
+    }
+    select:focus { outline: none; border-color: var(--accent, #58a6ff); }
+
+    button {
+      background: #238636; color: #fff; border: none;
+      padding: 0.5rem 1.1rem; border-radius: 6px; font-size: 0.85rem;
+      cursor: pointer; transition: background 0.15s; white-space: nowrap;
+    }
+    button:hover { background: #2ea043; }
+    button:disabled { background: #21262d; color: #6e7681; cursor: default; }
+
+    /* --- Sensitivity visual --- */
+    .sens-options {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sens-opt {
+      background: #0d1117; border: 2px solid #30363d; border-radius: 6px;
+      padding: 0.6rem 0.4rem; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .sens-opt:hover { border-color: #6e7681; }
+    .sens-opt:focus-visible { outline: 2px solid var(--accent, #58a6ff); outline-offset: 2px; }
+    .sens-opt.active { border-color: var(--active-color); background: var(--active-bg); }
+
+    .sens-opt .sens-name {
+      font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.15rem;
+    }
+    .sens-opt .sens-desc { font-size: 0.68rem; color: #8b949e; display: block; }
+
+    .sens-low    { --active-color: #3fb950; --active-bg: #0d2818; }
+    .sens-medium { --active-color: var(--accent, #58a6ff); --active-bg: #0d1a2e; }
+    .sens-high   { --active-color: #d29922; --active-bg: #1a1400; }
+    .sens-max    { --active-color: #f85149; --active-bg: #2a0e0e; }
+
+    .sens-low    .sens-name { color: #3fb950; }
+    .sens-medium .sens-name { color: var(--accent, #58a6ff); }
+    .sens-high   .sens-name { color: #d29922; }
+    .sens-max    .sens-name { color: #f85149; }
+
+    .sens-detail {
+      background: #0d1117; border-radius: 6px; padding: 0.6rem 0.75rem;
+      font-size: 0.78rem; color: #8b949e; margin-top: 0.5rem;
+    }
+
+    .sens-detail strong { color: #c9d1d9; }
+
+    /* --- Feedback --- */
+    .feedback { font-size: 0.82rem; padding: 0.35rem 0; min-height: 1.3em; }
+    .feedback.success { color: #3fb950; }
+    .feedback.error { color: #f85149; }
+
+    /* --- Info note --- */
+    .info-note {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+      padding: 0.85rem; font-size: 0.78rem; color: #8b949e; line-height: 1.5;
+    }
+    .info-note strong { color: #c9d1d9; }
+
+    /* --- Divider --- */
+    .divider { height: 1px; background: #21262d; margin: 0.75rem 0; }
+
+    /* --- Theme toggle --- */
+    .theme-toggle {
+      display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
+    }
+
+    .theme-opt {
+      flex: 1; background: #0d1117; border: 2px solid #30363d; border-radius: 6px;
+      padding: 0.6rem; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .theme-opt:hover { border-color: #6e7681; }
+    .theme-opt:focus-visible { outline: 2px solid var(--accent, #58a6ff); outline-offset: 2px; }
+    .theme-opt.active { border-color: var(--accent, #58a6ff); background: #0d1a2e; }
+
+    .theme-opt .theme-icon { font-size: 1.2rem; display: block; margin-bottom: 0.2rem; }
+
+    /* --- Color picker row --- */
+    .color-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .color-input {
+      width: 42px; height: 42px; border: 2px solid #30363d; border-radius: 8px;
+      background: none; cursor: pointer; padding: 2px;
+    }
+    .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input::-webkit-color-swatch { border: none; border-radius: 5px; }
+
+    .color-preview {
+      display: flex; align-items: center; gap: 0.5rem; flex: 1;
+    }
+
+    .color-hex {
+      font-family: "SF Mono","Fira Code",Consolas,monospace;
+      font-size: 0.82rem; color: #c9d1d9; background: #0d1117;
+      border: 1px solid #30363d; border-radius: 4px;
+      padding: 0.3rem 0.5rem;
+    }
+
+    .color-sample {
+      font-size: 0.85rem; font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .contrast-warning {
+      font-size: 0.75rem; color: #d29922; background: #1a1400;
+      border: 1px solid #9e6a03; border-radius: 5px;
+      padding: 0.45rem 0.65rem; margin-top: 0.5rem; margin-bottom: 0.5rem;
+      display: none; line-height: 1.4;
+    }
+
+    .contrast-warning.visible { display: block; }
+
+    /* --- Layout toggle --- */
+    .layout-toggle {
+      display: flex; gap: 0.5rem;
+    }
+
+    .layout-opt {
+      flex: 1; background: #0d1117; border: 2px solid #30363d; border-radius: 6px;
+      padding: 0.6rem; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .layout-opt:hover { border-color: #6e7681; }
+    .layout-opt:focus-visible { outline: 2px solid var(--accent, #58a6ff); outline-offset: 2px; }
+    .layout-opt.active { border-color: var(--accent, #58a6ff); background: #0d1a2e; }
+
+    .layout-opt .layout-icon { font-size: 1rem; display: block; margin-bottom: 0.15rem; color: #8b949e; }
+
+    /* ===== Light theme ===== */
+    :root.light body { background: #f6f8fa; color: #424a53; }
+    :root.light h1 { color: #1f2328; }
+    :root.light .subtitle { color: #656d76; }
+    :root.light .card { background: #ffffff; border-color: #d0d7de; }
+    :root.light .card h2 { color: #424a53; }
+    :root.light .form-group label { color: #656d76; }
+    :root.light input[type="password"],
+    :root.light input[type="text"],
+    :root.light input[type="number"] { background: #f0f3f6; border-color: #d0d7de; color: #424a53; }
+    :root.light input:focus { border-color: #0969da; }
+    :root.light select { background: #f0f3f6; border-color: #d0d7de; color: #424a53; }
+    :root.light select:focus { border-color: #0969da; }
+    :root.light button { background: #1a7f37; }
+    :root.light button:hover { background: #2da44e; }
+    :root.light button:disabled { background: #e8ecf0; color: #8b949e; }
+    :root.light .sens-opt { background: #f0f3f6; border-color: #d0d7de; }
+    :root.light .sens-opt:hover { border-color: #8b949e; }
+    :root.light .sens-opt .sens-desc { color: #656d76; }
+    :root.light .sens-detail { background: #f0f3f6; color: #656d76; }
+    :root.light .sens-detail strong { color: #424a53; }
+    :root.light .theme-opt { background: #f0f3f6; border-color: #d0d7de; }
+    :root.light .theme-opt:hover { border-color: #8b949e; }
+    :root.light .theme-opt.active { border-color: #0969da; background: #ddf4ff; }
+    :root.light .layout-opt { background: #f0f3f6; border-color: #d0d7de; }
+    :root.light .layout-opt:hover { border-color: #8b949e; }
+    :root.light .layout-opt.active { border-color: #0969da; background: #ddf4ff; }
+    :root.light .layout-opt .layout-icon { color: #656d76; }
+    :root.light .info-note { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
+    :root.light .info-note strong { color: #424a53; }
+    :root.light .divider { background: #e8ecf0; }
+    :root.light .color-input { border-color: #d0d7de; }
+    :root.light .color-hex { background: #f0f3f6; border-color: #d0d7de; color: #424a53; }
+    :root.light .contrast-warning { background: #fff8c5; border-color: #d4a72c; color: #953800; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Settings</h1>
+    <p class="subtitle">Configure HumanSeeker detection settings.</p>
+
+    <!-- ============================================ -->
+    <!-- Anomaly Sensitivity -->
+    <!-- ============================================ -->
+    <div class="card">
+      <h2><span class="card-icon">&#9881;</span> Anomaly Sensitivity</h2>
+
+      <div class="sens-options" id="sens-options" role="radiogroup" aria-label="Anomaly sensitivity level">
+        <div class="sens-opt sens-low" data-val="low" role="radio" aria-checked="false" aria-label="Low sensitivity: relaxed detection" tabindex="0">
+          <span class="sens-name">Low</span>
+          <span class="sens-desc">Relaxed</span>
+        </div>
+        <div class="sens-opt sens-medium active" data-val="medium" role="radio" aria-checked="true" aria-label="Medium sensitivity: balanced detection" tabindex="0">
+          <span class="sens-name">Medium</span>
+          <span class="sens-desc">Balanced</span>
+        </div>
+        <div class="sens-opt sens-high" data-val="high" role="radio" aria-checked="false" aria-label="High sensitivity: strict detection" tabindex="0">
+          <span class="sens-name">High</span>
+          <span class="sens-desc">Strict</span>
+        </div>
+        <div class="sens-opt sens-max" data-val="max" role="radio" aria-checked="false" aria-label="Max sensitivity: paranoid detection" tabindex="0">
+          <span class="sens-name">Max</span>
+          <span class="sens-desc">Paranoid</span>
+        </div>
+      </div>
+
+      <div class="sens-detail" id="sens-detail">
+        <strong>Medium:</strong> Balanced detection. Small deviations are ignored, significant behavioral changes trigger alerts.
+      </div>
+
+      <div class="feedback" id="sens-feedback"></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Detection Settings -->
+    <!-- ============================================ -->
+    <div class="card">
+      <h2><span class="card-icon">&#9202;</span> Detection Settings</h2>
+
+      <div class="form-group">
+        <label for="baseline-sessions">Calibration sessions required (1-10)</label>
+        <div class="input-row">
+          <input type="number" id="baseline-sessions" min="1" max="10" value="3" style="max-width:80px;font-family:inherit;" />
+          <span style="font-size:0.8rem;color:#8b949e;padding-top:0.5rem;">sessions to build the behavioral baseline</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="auto-send">Auto-send interval (seconds)</label>
+        <div class="input-row">
+          <input type="number" id="auto-send" min="10" max="300" value="60" style="max-width:80px;font-family:inherit;" />
+          <span style="font-size:0.8rem;color:#8b949e;padding-top:0.5rem;">how often tracker sends data during long sessions</span>
+        </div>
+      </div>
+
+      <button id="save-detection-btn">Save Detection Settings</button>
+      <div class="feedback" id="detection-feedback"></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Appearance -->
+    <!-- ============================================ -->
+    <div class="card">
+      <h2><span class="card-icon">&#127912;</span> Appearance</h2>
+
+      <!-- Theme -->
+      <div class="form-group">
+        <label>Theme</label>
+        <div class="theme-toggle" id="theme-toggle">
+          <div class="theme-opt active" data-theme="dark" tabindex="0">
+            <span class="theme-icon">&#127769;</span>
+            Dark
+          </div>
+          <div class="theme-opt" data-theme="light" tabindex="0">
+            <span class="theme-icon">&#9728;&#65039;</span>
+            Light
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Accent color -->
+      <div class="form-group">
+        <label>Accent Color</label>
+        <p style="font-size:0.75rem;color:#8b949e;margin-bottom:0.5rem;">
+          Changes the title, highlighted tabs, and other accent-colored elements.
+        </p>
+        <div class="color-row">
+          <input type="color" class="color-input" id="accent-picker" value="#58a6ff" />
+          <div class="color-preview">
+            <span class="color-hex" id="accent-hex">#58a6ff</span>
+            <span class="color-sample" id="accent-sample" style="color:#58a6ff;">HumanSeeker</span>
+          </div>
+        </div>
+        <div class="contrast-warning" id="contrast-warning">
+          Heads up: this color might be hard to see against the background. Try picking something brighter or with more contrast.
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;">
+          <span class="color-preset" data-color="#58a6ff" style="width:24px;height:24px;border-radius:50%;background:#58a6ff;cursor:pointer;border:2px solid transparent;" title="Blue (default)"></span>
+          <span class="color-preset" data-color="#3fb950" style="width:24px;height:24px;border-radius:50%;background:#3fb950;cursor:pointer;border:2px solid transparent;" title="Green"></span>
+          <span class="color-preset" data-color="#d29922" style="width:24px;height:24px;border-radius:50%;background:#d29922;cursor:pointer;border:2px solid transparent;" title="Gold"></span>
+          <span class="color-preset" data-color="#f85149" style="width:24px;height:24px;border-radius:50%;background:#f85149;cursor:pointer;border:2px solid transparent;" title="Red"></span>
+          <span class="color-preset" data-color="#bc8cff" style="width:24px;height:24px;border-radius:50%;background:#bc8cff;cursor:pointer;border:2px solid transparent;" title="Purple"></span>
+          <span class="color-preset" data-color="#f778ba" style="width:24px;height:24px;border-radius:50%;background:#f778ba;cursor:pointer;border:2px solid transparent;" title="Pink"></span>
+          <span class="color-preset" data-color="#79c0ff" style="width:24px;height:24px;border-radius:50%;background:#79c0ff;cursor:pointer;border:2px solid transparent;" title="Sky"></span>
+          <span class="color-preset" data-color="#ffffff" style="width:24px;height:24px;border-radius:50%;background:#ffffff;cursor:pointer;border:2px solid transparent;" title="White"></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Nav layout -->
+      <div class="form-group">
+        <label>Navigation Layout</label>
+        <div class="layout-toggle" id="layout-toggle">
+          <div class="layout-opt active" data-layout="row" tabindex="0">
+            <span class="layout-icon">&#9776;</span>
+            Row
+          </div>
+          <div class="layout-opt" data-layout="column" tabindex="0">
+            <span class="layout-icon">&#9783;</span>
+            Column
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback" id="appearance-feedback"></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Info -->
+    <!-- ============================================ -->
+    <div class="info-note">
+      <strong>Privacy:</strong> All settings are stored locally. Behavioral data never leaves your machine.
+      All classification runs 100% offline using local heuristic analysis.
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var BACKEND = window.location.origin || "http://localhost:5000";
+
+    var sensDescriptions = {
+      low:    "<strong>Low:</strong> Relaxed detection. Only extreme behavioral anomalies will trigger alerts. Best for high-traffic sites where false positives are costly.",
+      medium: "<strong>Medium:</strong> Balanced detection. Small deviations are ignored, significant behavioral changes trigger alerts. Recommended for most use cases.",
+      high:   "<strong>High:</strong> Strict detection. Moderate behavioral changes will trigger alerts. Good for sensitive applications like banking or admin panels.",
+      max:    "<strong>Max:</strong> Paranoid mode. Almost any deviation from the baseline triggers an alert. Use for high-security environments where every anomaly must be investigated.",
+    };
+
+    // --- Load current settings ---
+    function loadSettings() {
+      fetch(BACKEND + "/api/sensitivity")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          setSensActive(data.sensitivity || "medium");
+          document.getElementById("baseline-sessions").value = data.baseline_sessions || 3;
+          document.getElementById("auto-send").value = data.auto_send_interval || 60;
+        })
+        .catch(function () {});
+    }
+
+    loadSettings();
+
+    // --- Sensitivity selector ---
+    var sensOptions = document.querySelectorAll(".sens-opt");
+    var sensDetail  = document.getElementById("sens-detail");
+    var sensFeedback = document.getElementById("sens-feedback");
+
+    sensOptions.forEach(function (opt) {
+      opt.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          opt.click();
+        }
+      });
+      opt.addEventListener("click", function () {
+        var val = opt.getAttribute("data-val");
+        setSensActive(val);
+
+        sensFeedback.textContent = "Saving...";
+        sensFeedback.className = "feedback";
+
+        fetch(BACKEND + "/api/sensitivity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sensitivity: val }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.success) {
+            sensFeedback.textContent = "Sensitivity set to " + val + ".";
+            sensFeedback.className = "feedback success";
+          } else {
+            sensFeedback.textContent = data.error || "Failed.";
+            sensFeedback.className = "feedback error";
+          }
+        })
+        .catch(function (err) {
+          sensFeedback.textContent = "Error: " + err.message;
+          sensFeedback.className = "feedback error";
+        });
+      });
+    });
+
+    function setSensActive(val) {
+      sensOptions.forEach(function (o) {
+        o.classList.remove("active");
+        o.setAttribute("aria-checked", "false");
+      });
+      var target = document.querySelector('.sens-opt[data-val="' + val + '"]');
+      if (target) {
+        target.classList.add("active");
+        target.setAttribute("aria-checked", "true");
+      }
+      sensDetail.innerHTML = sensDescriptions[val] || "";
+    }
+
+    // --- Detection settings save ---
+    var saveDetBtn = document.getElementById("save-detection-btn");
+    var detFeedback = document.getElementById("detection-feedback");
+
+    saveDetBtn.addEventListener("click", function () {
+      var baseSessions = parseInt(document.getElementById("baseline-sessions").value, 10);
+      var autoSend = parseInt(document.getElementById("auto-send").value, 10);
+
+      saveDetBtn.disabled = true;
+      detFeedback.textContent = "";
+
+      fetch(BACKEND + "/api/sensitivity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseline_sessions: baseSessions, auto_send_interval: autoSend }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success) {
+          detFeedback.textContent = "Detection settings saved.";
+          detFeedback.className = "feedback success";
+        } else {
+          detFeedback.textContent = data.error || "Failed.";
+          detFeedback.className = "feedback error";
+        }
+      })
+      .catch(function (err) {
+        detFeedback.textContent = "Error: " + err.message;
+        detFeedback.className = "feedback error";
+      })
+      .finally(function () { saveDetBtn.disabled = false; });
+    });
+
+    // --- Appearance settings ---
+    var accentPicker = document.getElementById("accent-picker");
+    var accentHex = document.getElementById("accent-hex");
+    var accentSample = document.getElementById("accent-sample");
+    var contrastWarn = document.getElementById("contrast-warning");
+    var appearanceFeedback = document.getElementById("appearance-feedback");
+
+    // Load appearance on page load
+    function loadAppearance() {
+      fetch(BACKEND + "/api/appearance")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          setThemeActive(data.theme || "dark");
+          setAccentColor(data.accent || "#58a6ff", false);
+          setLayoutActive(data.nav_layout || "row");
+        })
+        .catch(function () {});
+    }
+
+    loadAppearance();
+
+    // Theme toggle
+    var themeOpts = document.querySelectorAll(".theme-opt");
+    themeOpts.forEach(function (opt) {
+      opt.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opt.click(); }
+      });
+      opt.addEventListener("click", function () {
+        var val = opt.getAttribute("data-theme");
+        setThemeActive(val);
+        saveAppearance({ theme: val });
+      });
+    });
+
+    function setThemeActive(val) {
+      themeOpts.forEach(function (o) { o.classList.remove("active"); });
+      var target = document.querySelector('.theme-opt[data-theme="' + val + '"]');
+      if (target) target.classList.add("active");
+    }
+
+    // Accent color picker
+    accentPicker.addEventListener("input", function () {
+      setAccentColor(accentPicker.value, true);
+    });
+
+    // Debounce save on color change
+    var colorSaveTimeout = null;
+    accentPicker.addEventListener("change", function () {
+      clearTimeout(colorSaveTimeout);
+      saveAppearance({ accent: accentPicker.value });
+    });
+
+    // Preset swatches
+    document.querySelectorAll(".color-preset").forEach(function (swatch) {
+      swatch.addEventListener("click", function () {
+        var color = swatch.getAttribute("data-color");
+        setAccentColor(color, true);
+        saveAppearance({ accent: color });
+      });
+    });
+
+    function setAccentColor(hex, notify) {
+      accentPicker.value = hex;
+      accentHex.textContent = hex;
+      accentSample.style.color = hex;
+
+      // Check contrast against dark background (#0f1117)
+      var lum = relativeLuminance(hex);
+      var bgLum = relativeLuminance("#0f1117");
+      var ratio = (Math.max(lum, bgLum) + 0.05) / (Math.min(lum, bgLum) + 0.05);
+
+      if (ratio < 3) {
+        contrastWarn.classList.add("visible");
+      } else {
+        contrastWarn.classList.remove("visible");
+      }
+
+      if (notify && window.parent !== window) {
+        window.parent.postMessage({ type: "appearance_changed" }, "*");
+      }
+    }
+
+    function relativeLuminance(hex) {
+      var r = parseInt(hex.slice(1, 3), 16) / 255;
+      var g = parseInt(hex.slice(3, 5), 16) / 255;
+      var b = parseInt(hex.slice(5, 7), 16) / 255;
+      r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+      g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+      b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    // Layout toggle
+    var layoutOpts = document.querySelectorAll(".layout-opt");
+    layoutOpts.forEach(function (opt) {
+      opt.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opt.click(); }
+      });
+      opt.addEventListener("click", function () {
+        var val = opt.getAttribute("data-layout");
+        setLayoutActive(val);
+        saveAppearance({ nav_layout: val });
+      });
+    });
+
+    function setLayoutActive(val) {
+      layoutOpts.forEach(function (o) { o.classList.remove("active"); });
+      var target = document.querySelector('.layout-opt[data-layout="' + val + '"]');
+      if (target) target.classList.add("active");
+    }
+
+    // Save appearance to backend
+    function saveAppearance(data) {
+      appearanceFeedback.textContent = "Saving...";
+      appearanceFeedback.className = "feedback";
+
+      fetch(BACKEND + "/api/appearance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (resp) {
+        if (resp.success) {
+          appearanceFeedback.textContent = "Appearance updated.";
+          appearanceFeedback.className = "feedback success";
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: "appearance_changed" }, "*");
+          }
+        } else {
+          appearanceFeedback.textContent = resp.error || "Failed.";
+          appearanceFeedback.className = "feedback error";
+        }
+      })
+      .catch(function (err) {
+        appearanceFeedback.textContent = "Error: " + err.message;
+        appearanceFeedback.className = "feedback error";
+      });
+    }
+
+  })();
+  </script>
+</body>
+</html>
