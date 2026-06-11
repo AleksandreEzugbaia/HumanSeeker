@@ -37,15 +37,18 @@ def find_free_port(start=5000, end=5010):
 
 
 def start_flask(port):
-    """Run the Flask server in the current thread (called as daemon)."""
+    """Run the Flask server in the current thread (called as daemon).
+
+    Prefers Waitress (production-grade WSGI) over Flask's built-in dev
+    server. Falls back to app.run() if Waitress isn't installed.
+    """
     from backend.app import create_app
     app = create_app()
-    app.run(
-        host="127.0.0.1",
-        port=port,
-        debug=False,
-        use_reloader=False,
-    )
+    try:
+        from waitress import serve
+        serve(app, host="127.0.0.1", port=port, threads=8, _quiet=True)
+    except ImportError:
+        app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
 
 
 def wait_for_server(port, timeout=15):
@@ -84,16 +87,30 @@ def main():
     try:
         import webview
         print("Opening native desktop window...")
-        window = webview.create_window(
+
+        # Resolve icon path for both dev and PyInstaller-frozen contexts
+        base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+        icon_path = os.path.join(base, "frontend", "static", "icon.ico")
+        if not os.path.exists(icon_path):
+            icon_path = None  # fall back gracefully
+
+        window_kwargs = dict(
             title="HumanSeeker",
             url=f"{app_url}/",
             width=1100,
             height=800,
             min_size=(800, 600),
         )
-        webview.start(
+
+        window = webview.create_window(**window_kwargs)
+
+        start_kwargs = dict(
             debug=os.environ.get("DEBUG", "").lower() in ("1", "true"),
         )
+        if icon_path:
+            start_kwargs["icon"] = icon_path
+
+        webview.start(**start_kwargs)
         print("Window closed. Shutting down.")
     except ImportError:
         print("Opening in browser (install 'pywebview' for a native window)...")

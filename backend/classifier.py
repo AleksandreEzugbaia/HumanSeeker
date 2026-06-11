@@ -70,9 +70,16 @@ def _local_classify(deviation_scores: dict) -> dict:
     else:
         level = "high"
 
-    # Boost to high if any single metric is extremely anomalous (>0.85)
+    # Single-metric escalation: only fires when ONE feature is severely
+    # anomalous (>= 0.95) AND the overall average is at least at the
+    # "medium" suspicion threshold. This prevents a single noisy
+    # feature on an otherwise-normal session from triggering HIGH.
     max_metric = sorted_metrics[0] if sorted_metrics else ("", 0)
-    if max_metric[1] >= 0.85 and level != "high":
+    if (
+        max_metric[1] >= 0.95
+        and avg_score >= thresholds["safe"]
+        and level != "high"
+    ):
         level = "high"
 
     # Confidence: higher when signals agree, lower when they're mixed

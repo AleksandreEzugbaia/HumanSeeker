@@ -24,11 +24,8 @@
   // ---------------------------------------------------------------------------
   function getOrCreateUserId() {
     var key = "behavioral_tracker_uid";
-    var uid = localStorage.getItem(key);
-    if (!uid) {
-      uid = "user_" + crypto.randomUUID();
-      localStorage.setItem(key, uid);
-    }
+    var uid = "sandro_test";
+    try { localStorage.setItem(key, uid); } catch (_) {}
     return uid;
   }
 

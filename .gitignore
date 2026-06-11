@@ -18,9 +18,16 @@ final/
 app/
 build/
 *.spec
+!HumanSeeker.spec
 
 # Runtime data
 backend/baselines/*.json
+baselines/*.json
+data/baselines/*.json
+data/history/*.json
+data/counters/*.json
+logs/*.jsonl
+logs/*.log
 
 # Environment
 .env
@@ -29,5 +36,7 @@ backend/baselines/*.json
 .vscode/
 .idea/
 
-# Claude Code
+# AI assistant / agent caches
 .claude/
+.cursor/
+.aider*

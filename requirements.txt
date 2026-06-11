@@ -1,5 +1,6 @@
 flask>=3.0.0
 python-dotenv>=1.0.0
+waitress>=3.0.0
 
 # Optional: install for a native desktop window instead of browser
 # pywebview>=5.0

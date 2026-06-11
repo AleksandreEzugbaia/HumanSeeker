@@ -27,17 +27,60 @@
     .controls { display: flex; align-items: center; gap: 0.6rem; }
     .controls label { font-size: 0.8rem; color: #8b949e; }
 
-    .controls input {
-      background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
-      color: #c9d1d9; padding: 0.35rem 0.6rem; font-size: 0.8rem; width: 200px;
-    }
-    .controls input:focus { outline: none; border-color: var(--accent, #58a6ff); }
+    /* Hidden user_id input — still in DOM so existing JS works, but invisible. */
+    .controls input { display: none; }
 
     .controls button {
       background: #238636; color: #fff; border: none;
       padding: 0.35rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
     }
     .controls button:hover { background: #2ea043; }
+
+    /* ON/OFF Toggle Switch */
+    .monitor-toggle {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .monitor-toggle .toggle-label {
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #8b949e;
+    }
+    .switch {
+      position: relative; display: inline-block;
+      width: 56px; height: 28px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #21262d; border-radius: 28px;
+      transition: background-color 0.25s;
+      border: 1px solid #30363d;
+    }
+    .switch-slider::before {
+      content: "";
+      position: absolute; height: 22px; width: 22px;
+      left: 2px; top: 2px;
+      background: #c9d1d9; border-radius: 50%;
+      transition: transform 0.25s, background 0.25s;
+    }
+    .switch input:checked + .switch-slider {
+      background: #238636; border-color: #2ea043;
+    }
+    .switch input:checked + .switch-slider::before {
+      transform: translateX(28px);
+      background: #ffffff;
+    }
+    .monitor-toggle .state-label {
+      font-size: 0.85rem; font-weight: 600; min-width: 32px;
+    }
+    .monitor-toggle .state-label.on  { color: #3fb950; }
+    .monitor-toggle .state-label.off { color: #6e7681; }
+    .reset-btn {
+      background: transparent; color: #8b949e;
+      border: 1px solid #30363d; border-radius: 6px;
+      padding: 0.25rem 0.6rem; font-size: 0.74rem; cursor: pointer;
+      margin-left: 0.4rem;
+    }
+    .reset-btn:hover { background: #21262d; color: #f85149; border-color: #da3633; }
 
     .poll-info {
       display: flex; align-items: center; gap: 0.5rem;
@@ -224,6 +267,106 @@
     :root.light .alert-detail { color: #656d76; }
     :root.light .alert-timestamp { color: #8b949e; }
     :root.light .alert-empty { color: #8b949e; }
+
+    /* =====================================================================
+       Suspicion-change visual feedback
+       Added to make medium/high events impossible to miss visually.
+       ===================================================================== */
+
+    /* Floating banner that slides down from the top when a new
+       medium/high verdict arrives. Auto-fades after 6 seconds. */
+    .threat-banner {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+      padding: 0.9rem 1.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: center;
+      color: #fff;
+      transform: translateY(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .threat-banner.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .threat-banner.medium {
+      background: linear-gradient(135deg, #d29922, #b87510);
+      border-bottom: 2px solid #fcd34d;
+    }
+    .threat-banner.high {
+      background: linear-gradient(135deg, #da3633, #861f1c);
+      border-bottom: 2px solid #f85149;
+      animation: bannerHighPulse 1.6s ease-in-out 3;
+    }
+    @keyframes bannerHighPulse {
+      0%, 100% { box-shadow: 0 4px 18px rgba(248, 81, 73, 0.45); }
+      50%      { box-shadow: 0 4px 32px rgba(248, 81, 73, 0.95); }
+    }
+    .threat-banner .threat-tag {
+      display: inline-block;
+      background: rgba(0,0,0,0.25);
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      margin-right: 0.6rem;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    /* Pulse animation on the risk badge when verdict escalates */
+    @keyframes pulseHigh {
+      0%   { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.7); }
+      50%  { box-shadow: 0 0 0 18px rgba(248, 81, 73, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0); }
+    }
+    @keyframes pulseMedium {
+      0%   { box-shadow: 0 0 0 0 rgba(210, 153, 34, 0.6); }
+      50%  { box-shadow: 0 0 0 16px rgba(210, 153, 34, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(210, 153, 34, 0); }
+    }
+    .risk-badge.pulse-high   { animation: pulseHigh 1.2s ease-out 3; }
+    .risk-badge.pulse-medium { animation: pulseMedium 1.2s ease-out 2; }
+
+    /* Full-screen edge glow when a HIGH event lands */
+    .threat-edge-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9998;
+      box-shadow: inset 0 0 0 0 rgba(248, 81, 73, 0);
+      transition: box-shadow 1.2s ease-out;
+    }
+    .threat-edge-glow.active {
+      box-shadow: inset 0 0 140px 6px rgba(248, 81, 73, 0.55);
+    }
+
+    /* Counter card highlight when its value bumps on a new event */
+    .counter-card.bump-high   { animation: cardBump 0.6s ease-out; box-shadow: 0 0 0 2px #da3633; }
+    .counter-card.bump-medium { animation: cardBump 0.6s ease-out; box-shadow: 0 0 0 2px #d29922; }
+    @keyframes cardBump {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* Timeline sparkline */
+    .timeline-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 0.9rem 1.1rem; margin-bottom: 1.1rem;
+    }
+    .timeline-card h2 {
+      font-size: 0.78rem; color: #8b949e; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.6rem;
+    }
+    .timeline-svg { width: 100%; height: 60px; display: block; }
+    .timeline-empty { font-size: 0.78rem; color: #6e7681; text-align: center; padding: 0.5rem; }
+    :root.light .timeline-card { background: #ffffff; border-color: #d0d7de; }
+    :root.light .timeline-empty { color: #8b949e; }
   </style>
 </head>
 <body>
@@ -231,9 +374,20 @@
     <div class="dash-header">
       <h1>Security Dashboard</h1>
       <div class="controls">
-        <label for="uid-input">User ID:</label>
-        <input type="text" id="uid-input" placeholder="user_abc123" aria-label="User ID for monitoring" />
-        <button id="start-btn" aria-label="Start monitoring the specified user">Start Monitoring</button>
+        <!-- Hidden user_id input (auto-filled from tracker, kept for compatibility) -->
+        <input type="text" id="uid-input" aria-hidden="true" tabindex="-1" />
+        <!-- Legacy start button (hidden, kept so existing event handler still binds) -->
+        <button id="start-btn" style="display:none;" aria-hidden="true" tabindex="-1">Start</button>
+
+        <div class="monitor-toggle">
+          <span class="toggle-label">Monitoring</span>
+          <label class="switch">
+            <input type="checkbox" id="monitor-switch" aria-label="Toggle monitoring on or off" />
+            <span class="switch-slider"></span>
+          </label>
+          <span class="state-label off" id="monitor-state">OFF</span>
+          <button class="reset-btn" id="reset-baseline-btn" title="Wipe your baseline and start over" aria-label="Reset baseline">Reset Baseline</button>
+        </div>
       </div>
     </div>
 
@@ -260,6 +414,13 @@
         <div class="counter-number" id="cnt-high" aria-label="High risk sessions count">0</div>
         <div class="counter-label">High Risk</div>
       </div>
+    </div>
+
+    <!-- Risk timeline sparkline (last 30 sessions) -->
+    <div class="timeline-card">
+      <h2>Last 30 sessions</h2>
+      <svg class="timeline-svg" id="timeline-svg" viewBox="0 0 600 60" preserveAspectRatio="none" aria-label="Session risk timeline"></svg>
+      <div class="timeline-empty" id="timeline-empty">No sessions yet.</div>
     </div>
 
     <!-- Current verdict -->
@@ -292,6 +453,10 @@
     </div>
   </div>
 
+  <!-- Suspicion-change visual feedback overlays -->
+  <div class="threat-edge-glow" id="threat-edge-glow" aria-hidden="true"></div>
+  <div class="threat-banner" id="threat-banner" role="alert" aria-live="assertive" aria-hidden="true"></div>
+
   <script>
   (function () {
     "use strict";
@@ -300,6 +465,11 @@
     var POLL_MS = 3000;
     var pollTimer = null;
     var knownAlertCount = 0;
+    var lastVerdictKey = null;        // last seen (timestamp + level) — used to detect NEW events
+    var lastCountHigh = 0;
+    var lastCountMedium = 0;
+    var bannerHideTimer = null;
+    var glowHideTimer = null;
 
     // DOM refs
     var uidInput    = document.getElementById("uid-input");
@@ -318,26 +488,127 @@
     var alertCount  = document.getElementById("alert-count");
     var alertList   = document.getElementById("alert-list");
     var alertEmpty  = document.getElementById("alert-empty");
+    var threatBanner = document.getElementById("threat-banner");
+    var threatEdgeGlow = document.getElementById("threat-edge-glow");
+    var counterCardMedium = cntMedium.parentElement;
+    var counterCardHigh = cntHigh.parentElement;
 
-    // Pre-fill UID
-    try {
-      var stored = localStorage.getItem("behavioral_tracker_uid");
-      if (stored) uidInput.value = stored;
-    } catch (_) {}
+    // --- Threat visualization helpers ---
+    function flashBanner(level, reason, confidence) {
+      clearTimeout(bannerHideTimer);
+      threatBanner.className = "threat-banner " + level;
+      var pct = Math.round((confidence || 0) * 100);
+      var emoji = level === "high" ? "⚠" : "⚫";
+      var label = level === "high" ? "HIGH RISK" : "MEDIUM RISK";
+      threatBanner.innerHTML =
+        emoji + ' <span class="threat-tag">' + label + '</span>' +
+        esc(reason || "Suspicious behavior detected.") +
+        ' &mdash; ' + pct + '% confidence';
+      // Force reflow so the transition fires reliably
+      void threatBanner.offsetWidth;
+      threatBanner.classList.add("visible");
+      threatBanner.setAttribute("aria-hidden", "false");
 
-    startBtn.addEventListener("click", function () {
-      var uid = uidInput.value.trim();
-      if (!uid) { alert("Enter a user ID."); return; }
+      bannerHideTimer = setTimeout(function () {
+        threatBanner.classList.remove("visible");
+        threatBanner.setAttribute("aria-hidden", "true");
+      }, level === "high" ? 7000 : 5000);
+    }
 
+    function flashEdgeGlow() {
+      clearTimeout(glowHideTimer);
+      threatEdgeGlow.classList.add("active");
+      glowHideTimer = setTimeout(function () {
+        threatEdgeGlow.classList.remove("active");
+      }, 2500);
+    }
+
+    function pulseBadge(level) {
+      // Restart the animation by toggling the class off then on
+      riskBadge.classList.remove("pulse-high", "pulse-medium");
+      void riskBadge.offsetWidth;
+      if (level === "high") riskBadge.classList.add("pulse-high");
+      else if (level === "medium") riskBadge.classList.add("pulse-medium");
+    }
+
+    function bumpCounter(level) {
+      var card = level === "high" ? counterCardHigh : counterCardMedium;
+      card.classList.remove("bump-high", "bump-medium");
+      void card.offsetWidth;
+      card.classList.add(level === "high" ? "bump-high" : "bump-medium");
+      setTimeout(function () {
+        card.classList.remove("bump-high", "bump-medium");
+      }, 1200);
+    }
+
+    // Auto-fill UID. The user never sees this — it just identifies their machine.
+    var autoUid = "sandro_test";
+    try { localStorage.setItem("behavioral_tracker_uid", autoUid); } catch (_) {}
+    uidInput.value = autoUid;
+
+    var monitorSwitch = document.getElementById("monitor-switch");
+    var monitorState  = document.getElementById("monitor-state");
+    var resetBtn      = document.getElementById("reset-baseline-btn");
+
+    function startMonitoring() {
       if (pollTimer) clearInterval(pollTimer);
       knownAlertCount = 0;
-
       liveDot.classList.add("active");
       pollStatus.textContent = "Live: polling every " + (POLL_MS / 1000) + "s";
-      startBtn.textContent = "Restart";
+      monitorState.textContent = "ON";
+      monitorState.className = "state-label on";
+      poll(autoUid);
+      pollTimer = setInterval(function () { poll(autoUid); }, POLL_MS);
+    }
+    function stopMonitoring() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+      liveDot.classList.remove("active");
+      pollStatus.textContent = "Monitoring is OFF. Flip the switch to start.";
+      monitorState.textContent = "OFF";
+      monitorState.className = "state-label off";
+    }
 
-      poll(uid);
-      pollTimer = setInterval(function () { poll(uid); }, POLL_MS);
+    // Persist the toggle state across reloads
+    var stateKey = "humanseeker_monitor_on";
+    try {
+      if (localStorage.getItem(stateKey) === "1") {
+        monitorSwitch.checked = true;
+        startMonitoring();
+      } else {
+        stopMonitoring();
+      }
+    } catch (_) { stopMonitoring(); }
+
+    monitorSwitch.addEventListener("change", function () {
+      if (monitorSwitch.checked) {
+        try { localStorage.setItem(stateKey, "1"); } catch (_) {}
+        startMonitoring();
+      } else {
+        try { localStorage.setItem(stateKey, "0"); } catch (_) {}
+        stopMonitoring();
+      }
+    });
+
+    resetBtn.addEventListener("click", function () {
+      if (!confirm("Wipe your baseline and start fresh? This clears all learned behavior for this machine.")) return;
+      fetch(BACKEND + "/api/baseline?user_id=" + encodeURIComponent(autoUid), { method: "DELETE" })
+        .then(function (r) { return r.json(); })
+        .then(function (resp) {
+          alert(resp.success ? "Baseline reset. Monitoring restarted." : "Reset failed: " + (resp.error || "unknown"));
+          // Force a fresh poll cycle
+          if (monitorSwitch.checked) {
+            stopMonitoring();
+            startMonitoring();
+          }
+        })
+        .catch(function (err) { alert("Reset failed: " + err.message); });
+    });
+
+    // Legacy compatibility: keep the old button's listener for hidden compat
+    startBtn.addEventListener("click", function () {
+      monitorSwitch.checked = true;
+      monitorSwitch.dispatchEvent(new Event("change"));
     });
 
     function poll(uid) {
@@ -353,6 +624,7 @@
 
         updateCounters(counters);
         updateVerdict(latest);
+        updateTimeline(history);
         updateAlerts(history);
       }).catch(function (err) {
         pollStatus.textContent = "Error: " + err.message;
@@ -363,10 +635,20 @@
 
     // --- Counters ---
     function updateCounters(c) {
+      var newHigh   = c.high   || 0;
+      var newMedium = c.medium || 0;
+
       animateCounter(cntTotal, c.total || 0);
       animateCounter(cntLow, c.low || 0);
-      animateCounter(cntMedium, c.medium || 0);
-      animateCounter(cntHigh, c.high || 0);
+      animateCounter(cntMedium, newMedium);
+      animateCounter(cntHigh, newHigh);
+
+      // Bump the counter card when a new event of that severity lands
+      if (newHigh > lastCountHigh) bumpCounter("high");
+      else if (newMedium > lastCountMedium) bumpCounter("medium");
+
+      lastCountHigh = newHigh;
+      lastCountMedium = newMedium;
     }
 
     function animateCounter(el, target) {
@@ -405,6 +687,61 @@
         var d = new Date(data.timestamp);
         verdictTime.textContent = "Last updated: " + formatDateTime(d);
       }
+
+      // ---------- Suspicion-change visual feedback ----------
+      // Only fire when this is a NEW verdict (different timestamp+level
+      // than the last one we showed) AND it's medium/high.
+      var verdictKey = (data.timestamp || "") + "|" + lvl;
+      var isNew = verdictKey !== lastVerdictKey;
+      lastVerdictKey = verdictKey;
+
+      if (isNew && (lvl === "medium" || lvl === "high")) {
+        pulseBadge(lvl);
+        flashBanner(lvl, data.reason, data.confidence);
+        if (lvl === "high") flashEdgeGlow();
+      }
+    }
+
+    // --- Risk timeline sparkline (last 30 sessions) ---
+    var timelineSvg = document.getElementById("timeline-svg");
+    var timelineEmpty = document.getElementById("timeline-empty");
+
+    function updateTimeline(history) {
+      if (!Array.isArray(history) || history.length === 0) {
+        timelineSvg.innerHTML = "";
+        timelineEmpty.style.display = "";
+        return;
+      }
+      timelineEmpty.style.display = "none";
+
+      // Take the most recent 30 (history is newest-first... but updateAlerts gets
+      // unreversed, let's normalize)
+      var recent = history.slice(0, 30).reverse(); // oldest -> newest left-to-right
+      var n = recent.length;
+      var W = 600, H = 60, pad = 6;
+      var dotR = Math.max(3, Math.min(8, Math.floor((W - 2 * pad) / Math.max(n * 2, 30))));
+
+      var colors = { low: "#3fb950", medium: "#d29922", high: "#f85149" };
+
+      var nodes = [];
+      for (var i = 0; i < n; i++) {
+        var v = recent[i];
+        var conf = typeof v.confidence === "number" ? v.confidence : 0;
+        var x = pad + (i * (W - 2 * pad)) / Math.max(n - 1, 1);
+        var y = H - pad - conf * (H - 2 * pad);
+        var color = colors[v.risk_level] || "#6e7681";
+        nodes.push({ x: x, y: y, color: color, level: v.risk_level });
+      }
+
+      // Build connecting polyline
+      var pts = nodes.map(function (n) { return n.x + "," + n.y; }).join(" ");
+      var svg = '<polyline points="' + pts + '" fill="none" stroke="#30363d" stroke-width="1.5" />';
+
+      for (var j = 0; j < nodes.length; j++) {
+        var nd = nodes[j];
+        svg += '<circle cx="' + nd.x.toFixed(1) + '" cy="' + nd.y.toFixed(1) + '" r="' + dotR + '" fill="' + nd.color + '"><title>' + nd.level + '</title></circle>';
+      }
+      timelineSvg.innerHTML = svg;
     }
 
     // --- Anomaly alerts (medium + high only) ---

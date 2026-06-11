@@ -50,18 +50,26 @@ def _save_raw(user_id: str, data: dict) -> None:
         json.dump(data, f, indent=2)
 
 
-def update_baseline(user_id: str, features: dict) -> None:
+def update_baseline(user_id: str, features: dict, trusted: bool = True) -> None:
     """Add a session's features to the user's baseline.
 
-    - During the first BASELINE_WINDOW sessions: accumulates raw history.
+    - During the first BASELINE_WINDOW sessions: ALWAYS accumulates raw history
+      (we have nothing to score against yet).
     - Once the window is reached: computes initial mean + variance.
-    - After that: incrementally updates via exponential moving average.
+    - After that: incrementally updates via exponential moving average — but
+      ONLY if `trusted` is True. Sessions that have been classified as
+      suspicious (medium/high risk) are dropped to prevent baseline
+      poisoning by an attacker.
+
+    `trusted=True` is the default for back-compat, but callers in the
+    real pipeline should pass `trusted=(risk_level == "low")` after
+    the classifier has run.
     """
     data = _load_raw(user_id)
     data["session_count"] = data.get("session_count", 0) + 1
 
     if data["session_count"] <= BASELINE_WINDOW:
-        # Accumulate raw history
+        # Cold start: accept everything so we can build the initial baseline.
         data.setdefault("history", []).append(features)
 
         if data["session_count"] == BASELINE_WINDOW:
@@ -78,18 +86,28 @@ def update_baseline(user_id: str, features: dict) -> None:
                 variances[key] = statistics.variance(values) if len(values) >= 2 else 0.0
             data["means"] = means
             data["variances"] = variances
-            # Clear history to save space
             data["history"] = []
-    else:
-        # Incremental update with exponential moving average (alpha = 0.2)
-        alpha = 0.2
-        for key, value in features.items():
-            old_mean = data["means"].get(key, value)
-            new_mean = old_mean * (1 - alpha) + value * alpha
-            # Update variance incrementally
-            old_var = data["variances"].get(key, 0.0)
-            new_var = old_var * (1 - alpha) + alpha * (value - old_mean) ** 2
-            data["means"][key] = new_mean
-            data["variances"][key] = new_var
+        _save_raw(user_id, data)
+        return
 
+    # Baseline is mature. Only trusted sessions are allowed to drift it.
+    if not trusted:
+        # Roll back the session_count bump — this session contributes nothing.
+        data["session_count"] -= 1
+        # Track how many suspicious sessions were rejected for the user (audit metric).
+        data["rejected_count"] = data.get("rejected_count", 0) + 1
+        _save_raw(user_id, data)
+        return
+
+    # EMA update with alpha = 0.2
+    alpha = 0.2
+    for key, value in features.items():
+        old_mean = data["means"].get(key, value)
+        new_mean = old_mean * (1 - alpha) + value * alpha
+        old_var = data["variances"].get(key, 0.0)
+        new_var = old_var * (1 - alpha) + alpha * (value - old_mean) ** 2
+        data["means"][key] = new_mean
+        data["variances"][key] = new_var
+
+    data["trusted_update_count"] = data.get("trusted_update_count", 0) + 1
     _save_raw(user_id, data)

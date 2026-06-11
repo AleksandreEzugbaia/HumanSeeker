@@ -210,6 +210,196 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ===================================================================
+       Monkeytype-style Typing Test for calibration
+       =================================================================== */
+    .typing-test {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.2rem;
+      position: relative;  /* anchors .typing-input inside this card */
+    }
+    .typing-test-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 0.7rem;
+    }
+    .typing-test-title {
+      font-size: 0.82rem; color: #8b949e; letter-spacing: 0.06em;
+      text-transform: uppercase; font-weight: 600;
+    }
+    .typing-test-progress {
+      font-size: 0.78rem; color: #8b949e;
+      font-variant-numeric: tabular-nums;
+    }
+    .typing-test-progress strong { color: #58a6ff; font-weight: 700; }
+
+    .typing-prompt {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 1.4rem;
+      line-height: 1.8;
+      color: #6e7681;
+      padding: 1rem;
+      background: #010409;
+      border-radius: 8px;
+      border: 1px solid #21262d;
+      min-height: 5.5rem;
+      letter-spacing: 0.02em;
+      user-select: none;
+      cursor: text;
+      position: relative;
+    }
+    .typing-prompt .ch              { transition: color 0.12s; position: relative; }
+    .typing-prompt .ch.correct      { color: #3fb950; }
+    .typing-prompt .ch.incorrect    { color: #f85149; background: rgba(248, 81, 73, 0.15); border-radius: 2px; }
+    .typing-prompt .ch.current      { color: #c9d1d9; }
+    .typing-prompt .ch.current::after {
+      content: ""; position: absolute; left: -1px; top: 2px;
+      width: 2px; height: 1.4em; background: #58a6ff;
+      animation: caret-blink 0.9s steps(2) infinite;
+    }
+    @keyframes caret-blink { 50% { opacity: 0; } }
+
+    .typing-input {
+      position: absolute; opacity: 0; pointer-events: none;
+      width: 1px; height: 1px; left: 0; top: 0;
+    }
+
+    .typing-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.9rem;
+    }
+    .typing-stat {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+    }
+    .typing-stat .stat-label {
+      font-size: 0.7rem;
+      color: #6e7681;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.15rem;
+    }
+    .typing-stat .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #c9d1d9;
+    }
+    .typing-stat.wpm   .stat-value { color: #58a6ff; }
+    .typing-stat.acc   .stat-value { color: #3fb950; }
+    .typing-stat.time  .stat-value { color: #d29922; }
+
+    .typing-hint {
+      margin-top: 0.7rem; font-size: 0.8rem; color: #6e7681;
+      text-align: center;
+    }
+    .typing-hint.completed { color: #3fb950; font-weight: 600; }
+
+    .typing-test.locked .typing-prompt { opacity: 0.5; pointer-events: none; }
+
+    :root.light .typing-test     { background: #ffffff; border-color: #d0d7de; }
+    :root.light .typing-prompt   { background: #f6f8fa; border-color: #d0d7de; color: #8b949e; }
+    :root.light .typing-stat     { background: #f6f8fa; border-color: #d0d7de; }
+    :root.light .typing-stat .stat-value { color: #424a53; }
+
+    /* ===================================================================
+       Live Risk Meter — visible suspicion gauge on the demo page
+       =================================================================== */
+    .risk-meter {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: box-shadow 0.4s, border-color 0.4s;
+    }
+    .risk-meter.level-medium {
+      border-color: #b07410;
+      box-shadow: 0 0 0 1px rgba(210, 153, 34, 0.4),
+                  0 0 22px rgba(210, 153, 34, 0.25);
+    }
+    .risk-meter.level-high {
+      border-color: #da3633;
+      box-shadow: 0 0 0 1px rgba(248, 81, 73, 0.5),
+                  0 0 28px rgba(248, 81, 73, 0.45);
+      animation: meterHighPulse 1.4s ease-in-out 2;
+    }
+    @keyframes meterHighPulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(248, 81, 73, 0.5), 0 0 28px rgba(248, 81, 73, 0.45); }
+      50%      { box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.85), 0 0 46px rgba(248, 81, 73, 0.85); }
+    }
+
+    .risk-meter-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+    .risk-meter-title {
+      font-size: 0.78rem;
+      letter-spacing: 0.07em;
+      color: #8b949e;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .risk-meter-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.4s;
+      color: #3fb950;
+    }
+    .risk-meter.level-medium .risk-meter-value { color: #d29922; }
+    .risk-meter.level-high   .risk-meter-value { color: #f85149; }
+
+    .risk-meter-track {
+      width: 100%;
+      height: 14px;
+      background: #21262d;
+      border-radius: 7px;
+      overflow: hidden;
+      position: relative;
+    }
+    .risk-meter-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 7px;
+      background: linear-gradient(90deg, #3fb950 0%, #d29922 60%, #f85149 100%);
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.35);
+    }
+    .risk-meter.level-medium .risk-meter-fill { box-shadow: 0 0 14px rgba(210, 153, 34, 0.55); }
+    .risk-meter.level-high   .risk-meter-fill { box-shadow: 0 0 18px rgba(248, 81, 73, 0.7); }
+
+    .risk-meter-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      color: #6e7681;
+      font-variant-numeric: tabular-nums;
+    }
+    .risk-meter-status {
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: #8b949e;
+      min-height: 1.1em;
+    }
+
+    :root.light .risk-meter           { background: #ffffff; border-color: #d0d7de; }
+    :root.light .risk-meter-title     { color: #656d76; }
+    :root.light .risk-meter-track     { background: #e8ecf0; }
+    :root.light .risk-meter-status    { color: #656d76; }
+    :root.light .risk-meter-ticks     { color: #8b949e; }
+
     /* --- Fake site elements --- */
     .fake-btn {
       padding: 0.4rem 0.9rem; border: none; border-radius: 5px;
@@ -269,16 +459,16 @@
   <div class="container">
     <h1>HumanSeeker Demo</h1>
     <p class="subtitle">
-      Interact with this page to generate behavioral data, then use the buttons below
-      to calibrate your baseline or run an anomaly test.
+      Calibrate your behavioral baseline by completing three short typing tests below,
+      then run an anomaly test to see HumanSeeker flag bot-like behavior in real time.
     </p>
 
     <!-- Step-by-step guide -->
     <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:#8b949e;line-height:1.7;">
-      <strong style="color:#58a6ff;display:block;margin-bottom:0.3rem;">Quick Start Guide</strong>
-      <strong style="color:#c9d1d9;">Step 1:</strong> Move your mouse, scroll, click, and type in the interaction area below.<br/>
-      <strong style="color:#c9d1d9;">Step 2:</strong> Click <em>"Send Calibration Data"</em> 3 times (interact between each send) to build your baseline.<br/>
-      <strong style="color:#c9d1d9;">Step 3:</strong> Click <em>"Run Anomaly Test"</em> to simulate a bot and see the detection in action.
+      <strong style="color:#58a6ff;display:block;margin-bottom:0.3rem;">Quick Start</strong>
+      <strong style="color:#c9d1d9;">Step 1:</strong> Click the prompt in the typing test below and type it out. Repeat for all three tests.<br/>
+      <strong style="color:#c9d1d9;">Step 2:</strong> After all three are complete your baseline is built.<br/>
+      <strong style="color:#c9d1d9;">Step 3:</strong> Click <em>"Run Anomaly Test"</em> to simulate bot input and watch the suspicion meter spike.
     </div>
 
     <!-- Status bar -->
@@ -298,46 +488,62 @@
       </div>
     </div>
 
-    <!-- Interaction zone -->
-    <div class="interaction-zone">
-      <h2>Interaction Area: use these to generate behavioral data</h2>
-
-      <!-- Typing area -->
-      <label style="font-size:0.8rem;color:#8b949e;margin-bottom:0.25rem;display:block;">Type anything here (keystroke timing is captured, not characters):</label>
-      <textarea id="demo-input" placeholder="Start typing to generate keystroke data..."></textarea>
-
-      <!-- Scrollable reading content -->
-      <div class="scroll-box">
-        <p><strong>Scroll through this content</strong> to generate scroll data for the behavioral tracker.</p>
-        <p>Behavioral biometrics identifies users based on how they interact with devices rather than what they know or have. Every person has a unique way of moving their mouse, scrolling, clicking, and typing.</p>
-        <p>When an attacker compromises credentials, they cannot mimic the legitimate user's behavioral patterns. The mouse will move differently, clicks will happen at unusual intervals, and keystroke dynamics will not match.</p>
-        <p>Behavioral monitoring detects anomalies indicating account takeover, bot activity, or insider threats by comparing a session's interaction patterns against a learned baseline.</p>
-        <p>Key metrics include mouse movement velocity and acceleration, scroll pacing and delta, click frequency and spatial distribution, and keystroke timing dynamics including hold duration and inter-key intervals.</p>
-        <p>Combined, these signals create a robust behavioral profile that adapts over time as the user's natural behavior evolves, while still flagging sudden departures that suggest a different human or bot is at the keyboard.</p>
+    <!-- Monkeytype-style typing test for calibration -->
+    <div class="typing-test" id="typing-test">
+      <div class="typing-test-header">
+        <span class="typing-test-title">Typing Calibration</span>
+        <span class="typing-test-progress">Test <strong id="test-num">1</strong> of <strong>3</strong></span>
       </div>
+      <div class="typing-prompt" id="typing-prompt" tabindex="0" aria-label="Type the displayed text"></div>
+      <input type="text" class="typing-input" id="typing-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <div class="typing-stats">
+        <div class="typing-stat wpm">
+          <div class="stat-label">WPM</div>
+          <div class="stat-value" id="stat-wpm">0</div>
+        </div>
+        <div class="typing-stat acc">
+          <div class="stat-label">Accuracy</div>
+          <div class="stat-value" id="stat-acc">100%</div>
+        </div>
+        <div class="typing-stat time">
+          <div class="stat-label">Time</div>
+          <div class="stat-value" id="stat-time">0.0s</div>
+        </div>
+      </div>
+      <div class="typing-hint" id="typing-hint">Click the text above and type the prompt to begin.</div>
     </div>
 
-    <!-- Two action buttons -->
-    <div class="actions">
-      <div class="action-card">
-        <h3 style="color: #58a6ff;">Calibration</h3>
-        <p>Send your current interaction data to build your behavioral baseline.
-           You need 3 calibration sessions. Interact with the page between each send.</p>
-        <button class="btn btn-calibrate" id="btn-calibrate" aria-label="Send current interaction data to calibrate your behavioral baseline">
-          <span class="btn-icon" id="cal-icon" aria-hidden="true">&#9881;</span>
-          <span id="cal-text">Send Calibration Data</span>
-        </button>
-      </div>
-
+    <!-- Anomaly test card (kept compact below the typing test) -->
+    <div class="actions" style="grid-template-columns: 1fr;">
       <div class="action-card">
         <h3 style="color: #f85149;">Anomaly Test</h3>
         <p>Simulate a bot/attacker session with erratic mouse, rapid clicks,
-           and inhuman keystroke timing to trigger a high-risk alert.</p>
+           and inhuman keystroke timing to trigger a high-risk alert. Unlocked after 3 calibration tests.</p>
         <button class="btn btn-anomaly" id="btn-anomaly" disabled aria-label="Simulate a bot session to test anomaly detection">
           <span class="btn-icon" id="anom-icon" aria-hidden="true">&#9888;</span>
           <span id="anom-text">Run Anomaly Test</span>
         </button>
       </div>
+    </div>
+
+    <!-- Hidden legacy calibration button — preserved so existing JS can still bind without errors -->
+    <button id="btn-calibrate" style="display:none;" aria-hidden="true" tabindex="-1">
+      <span id="cal-icon"></span><span id="cal-text"></span>
+    </button>
+
+    <!-- Live risk meter -->
+    <div class="risk-meter" id="risk-meter" aria-label="Live suspicion meter">
+      <div class="risk-meter-header">
+        <div class="risk-meter-title">Live Suspicion Meter</div>
+        <div class="risk-meter-value" id="risk-meter-value">0%</div>
+      </div>
+      <div class="risk-meter-track">
+        <div class="risk-meter-fill" id="risk-meter-fill"></div>
+      </div>
+      <div class="risk-meter-ticks">
+        <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+      </div>
+      <div class="risk-meter-status" id="risk-meter-status">Waiting for first calibration session.</div>
     </div>
 
     <!-- Result panel -->
@@ -388,6 +594,157 @@
     // ---------------------------------------------------------------
     // Send real captured data to backend (calibration)
     // ---------------------------------------------------------------
+    // Monkeytype-style typing test for calibration (replaces the old btn click handler).
+    var TYPING_PROMPTS = [
+      "the quick brown fox jumps over the lazy dog",
+      "she sells seashells by the shore in the bright sun",
+      "every storm runs out of rain before the morning light"
+    ];
+    var testIndex = 0, typedChars = [], keyEvents = [], pendingDowns = {};
+    var testStartTime = null, testCompleted = false;
+    var promptEl   = document.getElementById("typing-prompt");
+    var inputEl    = document.getElementById("typing-input");
+    var statWpm    = document.getElementById("stat-wpm");
+    var statAcc    = document.getElementById("stat-acc");
+    var statTime   = document.getElementById("stat-time");
+    var hintEl     = document.getElementById("typing-hint");
+    var testNumEl  = document.getElementById("test-num");
+    var testCard   = document.getElementById("typing-test");
+
+    function renderPrompt() {
+      var prompt = TYPING_PROMPTS[testIndex];
+      var html = "";
+      for (var i = 0; i < prompt.length; i++) {
+        var ch = prompt[i];
+        var typed = typedChars[i];
+        var cls = "ch";
+        if (typed === undefined) {
+          if (i === typedChars.length) cls += " current";
+        } else if (typed === ch) {
+          cls += " correct";
+        } else {
+          cls += " incorrect";
+        }
+        var display = ch === " " ? "&nbsp;" : escapeHtml(ch);
+        html += '<span class="' + cls + '">' + display + '</span>';
+      }
+      promptEl.innerHTML = html;
+    }
+
+    function updateLiveStats() {
+      var prompt = TYPING_PROMPTS[testIndex];
+      var n = typedChars.length, correct = 0;
+      for (var i = 0; i < n; i++) if (typedChars[i] === prompt[i]) correct++;
+      statAcc.textContent = (n > 0 ? (correct / n) * 100 : 100).toFixed(0) + "%";
+      if (testStartTime !== null) {
+        var elapsedMs = performance.now() - testStartTime;
+        statTime.textContent = (elapsedMs / 1000).toFixed(1) + "s";
+        var minutes = elapsedMs / 60000;
+        statWpm.textContent = Math.round(minutes > 0 ? (correct / 5) / minutes : 0);
+      }
+    }
+
+    function resetTestState() {
+      typedChars = []; keyEvents = []; pendingDowns = {};
+      testStartTime = null; testCompleted = false;
+      inputEl.value = "";
+      hintEl.classList.remove("completed");
+      hintEl.textContent = "Click the text above and type the prompt to begin.";
+      statWpm.textContent = "0"; statAcc.textContent = "100%"; statTime.textContent = "0.0s";
+      testCard.classList.remove("locked");
+      renderPrompt();
+    }
+
+    function finishTest() {
+      if (testCompleted) return;
+      testCompleted = true;
+      testCard.classList.add("locked");
+      hintEl.classList.add("completed");
+      hintEl.textContent = "Test complete! Sending baseline data...";
+
+      var prompt = TYPING_PROMPTS[testIndex];
+      var correct = 0;
+      for (var i = 0; i < prompt.length; i++) if (typedChars[i] === prompt[i]) correct++;
+      var elapsedMs = testStartTime !== null ? (performance.now() - testStartTime) : 1;
+      var minutes = elapsedMs / 60000;
+      var wpm = minutes > 0 ? (correct / 5) / minutes : 0;
+      var acc = prompt.length > 0 ? (correct / prompt.length) * 100 : 0;
+
+      var passive = window.__behaviorTracker.getPayload();
+      var payload = {
+        user_id: userId,
+        mouse_movement: passive.mouse_movement || [],
+        scroll_events: passive.scroll_events || [],
+        clicks: passive.clicks || [],
+        keystrokes: keyEvents.slice(),
+        typing_test: {
+          prompt: prompt,
+          typed_length: typedChars.length,
+          correct_chars: correct,
+          accuracy_pct: acc,
+          wpm: wpm,
+          duration_ms: elapsedMs,
+          prompt_index: testIndex
+        }
+      };
+
+      sendToBackend(payload, "calibration", function () {
+        testIndex += 1;
+        if (testIndex >= TYPING_PROMPTS.length) {
+          testCard.classList.add("locked");
+          hintEl.textContent = "All 3 calibration tests complete. Baseline ready! Try the anomaly test below.";
+          btnAnom.disabled = false;
+        } else {
+          setTimeout(function () {
+            testNumEl.textContent = (testIndex + 1);
+            resetTestState();
+            inputEl.focus({ preventScroll: true });
+          }, 1200);
+        }
+      });
+    }
+
+    promptEl.addEventListener("click", function () { if (!testCompleted) inputEl.focus({ preventScroll: true }); });
+
+    inputEl.addEventListener("keydown", function (e) {
+      if (testCompleted) return;
+      if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta") return;
+      if (testStartTime === null) {
+        testStartTime = performance.now();
+        hintEl.textContent = "Keep typing...";
+      }
+      pendingDowns[e.key] = performance.now();
+    });
+
+    inputEl.addEventListener("keyup", function (e) {
+      if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta") return;
+      var downAt = pendingDowns[e.key];
+      if (downAt !== undefined) {
+        var upAt = performance.now();
+        var origin = testStartTime !== null ? testStartTime : downAt;
+        keyEvents.push({ key: "key", down: Math.round(downAt - origin), up: Math.round(upAt - origin) });
+        delete pendingDowns[e.key];
+      }
+    });
+
+    inputEl.addEventListener("input", function () {
+      if (testCompleted) return;
+      var prompt = TYPING_PROMPTS[testIndex];
+      typedChars = inputEl.value.slice(0, prompt.length).split("");
+      renderPrompt();
+      updateLiveStats();
+      if (typedChars.length === prompt.length) {
+        var allCorrect = true;
+        for (var i = 0; i < prompt.length; i++) {
+          if (typedChars[i] !== prompt[i]) { allCorrect = false; break; }
+        }
+        if (allCorrect) finishTest();
+      }
+    });
+
+    resetTestState();
+
+    // Legacy hidden btn-calibrate is preserved but does nothing now.
     btnCal.addEventListener("click", function () {
       var payload = window.__behaviorTracker.getPayload();
       var total = payload.mouse_movement.length + payload.scroll_events.length +
@@ -509,6 +866,28 @@
     // ---------------------------------------------------------------
     // UI helpers
     // ---------------------------------------------------------------
+    // Live risk meter refs
+    var meterRoot   = document.getElementById("risk-meter");
+    var meterValue  = document.getElementById("risk-meter-value");
+    var meterFill   = document.getElementById("risk-meter-fill");
+    var meterStatus = document.getElementById("risk-meter-status");
+
+    function updateRiskMeter(level, pct, statusText) {
+      meterRoot.classList.remove("level-low", "level-medium", "level-high");
+      if (level === "medium" || level === "high") {
+        meterRoot.classList.add("level-" + level);
+        // Restart pulse animation by toggling the class
+        if (level === "high") {
+          meterRoot.classList.remove("level-high");
+          void meterRoot.offsetWidth;
+          meterRoot.classList.add("level-high");
+        }
+      }
+      meterFill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+      meterValue.textContent = Math.round(pct) + "%";
+      meterStatus.textContent = statusText || "";
+    }
+
     function showVerdict(verdict, message) {
       resultEmpty.style.display = "none";
       resultVerdict.style.display = "block";
@@ -519,6 +898,8 @@
             '<span class="verdict-badge badge-learning">' + (message && message.indexOf("Error") === 0 ? "ERROR" : "LEARNING") + '</span>' +
           '</div>' +
           '<div class="verdict-reason">' + escapeHtml(message) + '</div>';
+        // Show learning state on the meter too
+        updateRiskMeter("low", 0, message || "Waiting for verdict.");
         return;
       }
 
@@ -531,6 +912,17 @@
           '<div class="conf-bar-bg"><div class="conf-bar-fill fill-' + lvl + '" style="width:' + pct + '%"></div></div>' +
         '</div>' +
         '<div class="verdict-reason">' + escapeHtml(verdict.reason) + '</div>';
+
+      // Drive the live risk meter
+      var statusText;
+      if (lvl === "high") {
+        statusText = "HIGH RISK — behavior strongly deviates from baseline.";
+      } else if (lvl === "medium") {
+        statusText = "MEDIUM — behavior differs from baseline but not conclusively.";
+      } else {
+        statusText = "Normal session — within baseline parameters.";
+      }
+      updateRiskMeter(lvl, pct, statusText);
     }
 
     function addLog(tag, level, text) {
